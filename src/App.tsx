@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AuthPage from './pages/Auth'
 import HomePage from './pages/Home'
+import ExercisesPage from './pages/Exercises'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -13,6 +14,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/exercises"
+          element={
+            <ProtectedRoute>
+              <ExercisesPage />
             </ProtectedRoute>
           }
         />

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import Button from '../components/ui/Button'
 
@@ -29,6 +30,12 @@ export default function HomePage() {
           <StatCard label="Series cette semaine" value="0" />
           <StatCard label="Seances programmees" value="0" />
           <StatCard label="Phase actuelle" value="—" />
+        </div>
+
+        <div className="mt-6">
+          <Link to="/exercises">
+            <Button variant="secondary">Gerer mes exercices</Button>
+          </Link>
         </div>
 
         <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
