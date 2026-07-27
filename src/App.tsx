@@ -1,17 +1,24 @@
-import { useAuth } from './hooks/useAuth'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AuthPage from './pages/Auth'
+import HomePage from './pages/Home'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
-  const { session, loading } = useAuth()
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
-  if (!session) return <AuthPage />
-
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Connecté ✅</h1>
-      <p>{session.user.email}</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<AuthPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<AuthPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
