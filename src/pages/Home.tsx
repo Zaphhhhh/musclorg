@@ -32,9 +32,12 @@ export default function HomePage() {
           <StatCard label="Phase actuelle" value="—" />
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex gap-3">
           <Link to="/exercises">
             <Button variant="secondary">Gerer mes exercices</Button>
+          </Link>
+          <Link to="/programs">
+            <Button variant="secondary">Mes programmes</Button>
           </Link>
         </div>
 

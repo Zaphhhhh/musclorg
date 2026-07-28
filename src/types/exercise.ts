@@ -1,11 +1,17 @@
 export const MUSCLE_GROUPS = [
   'Pecs',
   'Dos',
-  'Jambes',
   'Epaules',
-  'Bras',
+  'Biceps',
+  'Triceps',
+  'Avant-bras',
+  'Quadriceps',
+  'Ischio-jambiers',
+  'Fessiers',
+  'Mollets',
   'Abdos',
   'Full body',
+  'Cardio',
 ] as const
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
