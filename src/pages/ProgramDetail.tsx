@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   DndContext,
@@ -46,7 +46,7 @@ export default function ProgramDetailPage() {
   const [phaseType, setPhaseType] = useState<PeriodizationType>('lineaire')
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null)
 
-  const exercisesById = new Map(exercises.map((e) => [e.id, e]))
+  const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })

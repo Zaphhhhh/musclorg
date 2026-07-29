@@ -59,6 +59,11 @@ export interface Session {
   created_at: string
 }
 
+export interface SetOverride {
+  mode: 'fixed' | 'pct_pr'
+  value: number
+}
+
 export interface SessionBlock {
   id: string
   session_id: string
@@ -67,6 +72,12 @@ export interface SessionBlock {
   sets: number
   reps: number
   weight: number | null
+  weight_mode: 'fixed' | 'pct_pr'
+  weight_pct: number | null
+  // Surcharge manuelle par serie, indexee comme la liste renvoyee par
+  // computeSets(). Peut etre un poids fixe ou un % de PR, au choix de
+  // chaque serie individuellement. null/absent = utilise le calcul auto.
+  set_overrides: (SetOverride | null)[] | null
   rest_seconds: number | null
   set_strategy: SetStrategyType
   set_strategy_config: SetStrategyConfig | null

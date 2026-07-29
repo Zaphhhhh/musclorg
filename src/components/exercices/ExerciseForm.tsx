@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
-import Select from '../ui/Select'
+import ChipMultiSelect from '../ui/ChipMultiSelect'
 import { MUSCLE_GROUPS } from '../../types/exercise'
 import type { Exercise, ExerciseInput } from '../../types/exercise'
 
@@ -13,8 +13,9 @@ interface ExerciseFormProps {
 
 export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [muscleGroup, setMuscleGroup] = useState(initial?.muscle_group ?? MUSCLE_GROUPS[0])
+  const [muscleGroups, setMuscleGroups] = useState<string[]>(initial?.muscle_group ?? [])
   const [warmupEnabled, setWarmupEnabled] = useState(initial?.warmup_enabled ?? false)
+  const [currentPr, setCurrentPr] = useState(initial?.current_pr ?? '')
   const [showDefaults, setShowDefaults] = useState(
     initial ? Boolean(initial.default_sets || initial.default_reps || initial.default_weight) : false
   )
@@ -32,13 +33,14 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
 
     const { error } = await onSubmit({
       name,
-      muscle_group: muscleGroup,
+      muscle_group: muscleGroups as Exercise['muscle_group'],
       default_sets: showDefaults && sets !== '' ? Number(sets) : null,
       default_reps: showDefaults && reps !== '' ? Number(reps) : null,
       default_weight: showDefaults && weight !== '' ? Number(weight) : null,
       default_rest_seconds: showDefaults && rest !== '' ? Number(rest) : null,
       warmup_enabled: warmupEnabled,
       warmup_config: initial?.warmup_config ?? null,
+      current_pr: currentPr !== '' ? Number(currentPr) : null,
     })
 
     setSubmitting(false)
@@ -65,12 +67,25 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
         required
       />
 
-      <Select
-        label="Groupe musculaire"
+      <ChipMultiSelect
+        label="Groupes musculaires"
         options={MUSCLE_GROUPS}
-        value={muscleGroup ?? MUSCLE_GROUPS[0]}
-        onChange={(e) => setMuscleGroup(e.target.value as typeof muscleGroup)}
+        value={muscleGroups}
+        onChange={setMuscleGroups}
       />
+
+      <Input
+        label="PR actuel / 1RM (kg) — optionnel"
+        type="number"
+        min={0}
+        step={0.5}
+        value={currentPr}
+        onChange={(e) => setCurrentPr(e.target.value === '' ? '' : Number(e.target.value))}
+        placeholder="Ex: 100"
+      />
+      <p className="text-xs text-[var(--text-muted)] -mt-2">
+        Sert de base quand tu configures un poids en % de PR dans un bloc de seance.
+      </p>
 
       <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
         <input

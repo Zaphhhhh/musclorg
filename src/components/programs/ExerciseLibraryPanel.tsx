@@ -17,8 +17,8 @@ function DraggableExercise({ exercise }: { exercise: Exercise }) {
       }`}
     >
       <p className="font-medium">{exercise.name}</p>
-      {exercise.muscle_group && (
-        <p className="text-xs text-[var(--text-muted)]">{exercise.muscle_group}</p>
+      {exercise.muscle_group.length > 0 && (
+        <p className="text-xs text-[var(--text-muted)]">{exercise.muscle_group.join(', ')}</p>
       )}
     </div>
   )

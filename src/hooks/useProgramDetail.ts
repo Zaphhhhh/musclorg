@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Exercise } from '../types/exercise'
 import type {
@@ -50,6 +50,8 @@ export function useProgramDetail(programId: string | undefined) {
   const [program, setProgram] = useState<ProgramWithTree | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const pendingBlockUpdates = useRef<Record<string, Partial<SessionBlock>>>({})
+  const blockUpdateTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const fetchProgram = useCallback(async () => {
     if (!programId) return
@@ -193,11 +195,47 @@ export function useProgramDetail(programId: string | undefined) {
   )
 
   const updateBlock = useCallback(
-    async (blockId: string, updates: Partial<SessionBlock>) => {
-      const { error } = await supabase.from('session_blocks').update(updates).eq('id', blockId)
-      if (error) return { error: error.message }
-      await fetchProgram()
-      return { error: null }
+    (blockId: string, updates: Partial<SessionBlock>) => {
+      // maj locale immediate: l'UI reste reactive a chaque frappe
+      setProgram((prev) => {
+        if (!prev) return prev
+        return sortTree({
+          ...prev,
+          phases: prev.phases.map((phase) => ({
+            ...phase,
+            weeks: phase.weeks.map((week) => ({
+              ...week,
+              sessions: week.sessions.map((session) => ({
+                ...session,
+                session_blocks: session.session_blocks.map((b) =>
+                  b.id === blockId ? { ...b, ...updates } : b
+                ),
+              })),
+            })),
+          })),
+        })
+      })
+
+      // ecriture reseau regroupee (debounce): on accumule les patches
+      // successifs et on ecrit une fois que la frappe s'arrete, au lieu
+      // d'une requete + refetch complet a chaque caractere tape.
+      pendingBlockUpdates.current[blockId] = {
+        ...pendingBlockUpdates.current[blockId],
+        ...updates,
+      }
+
+      clearTimeout(blockUpdateTimers.current[blockId])
+      blockUpdateTimers.current[blockId] = setTimeout(async () => {
+        const patch = pendingBlockUpdates.current[blockId]
+        delete pendingBlockUpdates.current[blockId]
+        if (!patch) return
+
+        const { error } = await supabase.from('session_blocks').update(patch).eq('id', blockId)
+        if (error) {
+          setError(error.message)
+          await fetchProgram() // resynchronise si l'ecriture a echoue
+        }
+      }, 400)
     },
     [fetchProgram]
   )
@@ -207,6 +245,7 @@ export function useProgramDetail(programId: string | undefined) {
       updateBlock(blockId, {
         set_strategy: strategy,
         set_strategy_config: defaultConfigFor(strategy) as SetStrategyConfig,
+        set_overrides: null,
       }),
     [updateBlock]
   )

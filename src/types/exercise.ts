@@ -34,13 +34,16 @@ export interface Exercise {
   id: string
   user_id: string
   name: string
-  muscle_group: MuscleGroup | null
+  muscle_group: MuscleGroup[]
   default_sets: number | null
   default_reps: number | null
   default_weight: number | null
   default_rest_seconds: number | null
   warmup_enabled: boolean
   warmup_config: WarmupConfig | null
+  // Record personnel actuel, sert de base au calcul "poids en % de PR"
+  // dans un bloc. Distinct des default_* qui ne sont que des suggestions.
+  current_pr: number | null
   created_at: string
   updated_at: string
 }
