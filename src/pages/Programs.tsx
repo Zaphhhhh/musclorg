@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePrograms } from '../hooks/usePrograms'
+import ProgramCard from '../components/programs/ProgramCard'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 
 export default function ProgramsPage() {
-  const { programs, loading, error, createProgram, deleteProgram } = usePrograms()
+  const { programs, loading, error, createProgram, updateProgram, deleteProgram } = usePrograms()
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -103,33 +104,12 @@ export default function ProgramsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {programs.map((program) => (
-              <div
+              <ProgramCard
                 key={program.id}
-                className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 flex flex-col gap-3"
-              >
-                <div>
-                  <h3 className="text-base normal-case tracking-normal font-semibold">
-                    {program.name}
-                  </h3>
-                  {program.description && (
-                    <p className="text-sm text-[var(--text-muted)] mt-1">{program.description}</p>
-                  )}
-                </div>
-                <div className="flex gap-2 mt-1">
-                  <Link to={`/programs/${program.id}`}>
-                    <Button variant="secondary" className="text-xs px-3 py-1.5">
-                      Ouvrir
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleDelete(program.id)}
-                    className="text-xs px-3 py-1.5 text-[var(--danger)]"
-                  >
-                    Supprimer
-                  </Button>
-                </div>
-              </div>
+                program={program}
+                onUpdate={(name, description) => updateProgram(program.id, name, description)}
+                onDelete={() => handleDelete(program.id)}
+              />
             ))}
           </div>
         )}

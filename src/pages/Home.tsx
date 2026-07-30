@@ -1,11 +1,29 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { usePrograms } from '../hooks/usePrograms'
+import { useProgramDetail } from '../hooks/useProgramDetail'
+import { useExercises } from '../hooks/useExercises'
 import Button from '../components/ui/Button'
+import WeekOverview from '../components/dashboard/WeekOverview'
+import { PERIODIZATION_LABELS } from '../types/program'
 
 export default function HomePage() {
   const { session, signOut } = useAuth()
   const email = session?.user.email ?? ''
   const firstName = email.split('@')[0]
+
+  const { programs, loading: programsLoading } = usePrograms()
+  const mostRecentProgram = programs[0]
+  const { program, loading: programDetailLoading } = useProgramDetail(mostRecentProgram?.id)
+  const { exercises } = useExercises()
+  const exercisesById = new Map(exercises.map((e) => [e.id, e]))
+
+  const firstPhase = program?.phases[0]
+  const firstWeek = firstPhase?.weeks[0]
+  const weekSessions = firstWeek?.sessions ?? []
+  const totalSets = weekSessions
+    .flatMap((s) => s.session_blocks)
+    .reduce((sum, b) => sum + b.sets, 0)
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -22,14 +40,15 @@ export default function HomePage() {
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         <h2 className="text-2xl mb-1">Salut, {firstName}</h2>
-        <p className="text-[var(--text-muted)] mb-10">
-          Voici un apercu de ta semaine. Le tableau de bord et tes seances arrivent bientot ici.
-        </p>
+        <p className="text-[var(--text-muted)] mb-10">Voici un apercu de ta semaine.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard label="Series cette semaine" value="0" />
-          <StatCard label="Seances programmees" value="0" />
-          <StatCard label="Phase actuelle" value="—" />
+          <StatCard label="Series cette semaine" value={String(totalSets)} />
+          <StatCard label="Seances programmees" value={String(weekSessions.length)} />
+          <StatCard
+            label="Phase actuelle"
+            value={firstPhase ? PERIODIZATION_LABELS[firstPhase.periodization_type] : '—'}
+          />
         </div>
 
         <div className="mt-6 flex gap-3">
@@ -41,12 +60,39 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
-          <p className="text-[var(--text-muted)]">
-            Ton tableau de bord de seances arrivera ici — glisse tes blocs d'exos pour
-            construire ta semaine.
-          </p>
-        </section>
+        {programsLoading || programDetailLoading ? (
+          <p className="text-[var(--text-muted)] mt-12">Chargement...</p>
+        ) : !mostRecentProgram ? (
+          <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
+            <p className="text-[var(--text-muted)]">
+              Aucun programme pour l'instant.{' '}
+              <Link to="/programs" className="text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                Cree ton premier programme
+              </Link>{' '}
+              pour voir tes seances de la semaine ici.
+            </p>
+          </section>
+        ) : weekSessions.length === 0 ? (
+          <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
+            <p className="text-[var(--text-muted)]">
+              "{mostRecentProgram.name}" n'a pas encore de seances configurees.{' '}
+              <Link
+                to={`/programs/${mostRecentProgram.id}`}
+                className="text-[var(--accent)] hover:text-[var(--accent-hover)]"
+              >
+                Ouvre-le
+              </Link>{' '}
+              pour ajouter des phases, semaines et seances.
+            </p>
+          </section>
+        ) : (
+          <WeekOverview
+            programName={mostRecentProgram.name}
+            programId={mostRecentProgram.id}
+            sessions={weekSessions}
+            exercisesById={exercisesById}
+          />
+        )}
       </main>
     </div>
   )

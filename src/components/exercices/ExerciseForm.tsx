@@ -15,7 +15,8 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
   const [name, setName] = useState(initial?.name ?? '')
   const [muscleGroups, setMuscleGroups] = useState<string[]>(initial?.muscle_group ?? [])
   const [warmupEnabled, setWarmupEnabled] = useState(initial?.warmup_enabled ?? false)
-  const [currentPr, setCurrentPr] = useState(initial?.current_pr ?? '')
+  const [currentPr, setCurrentPr] = useState(initial?.pr_weight ?? '')
+  const [prReps, setPrReps] = useState(initial?.pr_reps ?? '')
   const [showDefaults, setShowDefaults] = useState(
     initial ? Boolean(initial.default_sets || initial.default_reps || initial.default_weight) : false
   )
@@ -40,7 +41,8 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
       default_rest_seconds: showDefaults && rest !== '' ? Number(rest) : null,
       warmup_enabled: warmupEnabled,
       warmup_config: initial?.warmup_config ?? null,
-      current_pr: currentPr !== '' ? Number(currentPr) : null,
+      pr_weight: currentPr !== '' ? Number(currentPr) : null,
+      pr_reps: prReps !== '' ? Number(prReps) : null,
     })
 
     setSubmitting(false)
@@ -74,17 +76,28 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
         onChange={setMuscleGroups}
       />
 
-      <Input
-        label="PR actuel / 1RM (kg) — optionnel"
-        type="number"
-        min={0}
-        step={0.5}
-        value={currentPr}
-        onChange={(e) => setCurrentPr(e.target.value === '' ? '' : Number(e.target.value))}
-        placeholder="Ex: 100"
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Poids du record (kg) — optionnel"
+          type="number"
+          min={0}
+          step={0.5}
+          value={currentPr}
+          onChange={(e) => setCurrentPr(e.target.value === '' ? '' : Number(e.target.value))}
+          placeholder="Ex: 100"
+        />
+        <Input
+          label="Reps a ce poids"
+          type="number"
+          min={1}
+          value={prReps}
+          onChange={(e) => setPrReps(e.target.value === '' ? '' : Number(e.target.value))}
+          placeholder="Ex: 5"
+        />
+      </div>
       <p className="text-xs text-[var(--text-muted)] -mt-2">
-        Sert de base quand tu configures un poids en % de PR dans un bloc de seance.
+        Ton record reel (pas besoin que ce soit un 1RM) — sert de base quand tu configures un
+        poids en % de PR dans un bloc de seance.
       </p>
 
       <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">

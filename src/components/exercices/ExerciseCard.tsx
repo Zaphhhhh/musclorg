@@ -13,8 +13,8 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCar
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 flex flex-col gap-3">
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
           <h3 className="text-base normal-case tracking-normal font-semibold">
             {exercise.name}
           </h3>
@@ -30,12 +30,19 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCar
               ))}
             </div>
           )}
-          {exercise.current_pr && (
+          {exercise.pr_weight && (
             <span className="inline-block mt-1 text-xs text-[var(--pr)] bg-[var(--pr)]/10 rounded-full px-2 py-0.5">
-              PR: {exercise.current_pr} kg
+              Record: {exercise.pr_weight}kg{exercise.pr_reps ? ` x${exercise.pr_reps}` : ''}
             </span>
           )}
         </div>
+        <button
+          onClick={onEdit}
+          className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] shrink-0"
+          aria-label="Modifier l'exercice"
+        >
+          Modifier
+        </button>
       </div>
 
       {hasSuggestion && (
@@ -55,9 +62,6 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCar
       )}
 
       <div className="flex gap-2 mt-1">
-        <Button variant="secondary" onClick={onEdit} className="text-xs px-3 py-1.5">
-          Modifier
-        </Button>
         <Button variant="ghost" onClick={onDelete} className="text-xs px-3 py-1.5 text-[var(--danger)]">
           Supprimer
         </Button>

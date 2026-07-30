@@ -87,14 +87,16 @@ export default function ExercisesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {exercises.map((exercise) => (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                onEdit={() => openEdit(exercise)}
-                onDelete={() => handleDelete(exercise.id)}
-              />
-            ))}
+            {exercises
+              .filter((exercise) => exercise.id !== editing?.id)
+              .map((exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  onEdit={() => openEdit(exercise)}
+                  onDelete={() => handleDelete(exercise.id)}
+                />
+              ))}
           </div>
         )}
       </main>

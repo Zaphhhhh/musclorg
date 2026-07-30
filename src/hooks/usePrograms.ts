@@ -54,5 +54,27 @@ export function usePrograms() {
     return { error: null }
   }, [])
 
-  return { programs, loading, error, createProgram, deleteProgram, refetch: fetchPrograms }
+  const updateProgram = useCallback(async (id: string, name: string, description: string) => {
+    const { data, error } = await supabase
+      .from('programs')
+      .update({ name, description: description || null })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) return { error: error.message }
+
+    setPrograms((prev) => prev.map((p) => (p.id === id ? (data as Program) : p)))
+    return { error: null }
+  }, [])
+
+  return {
+    programs,
+    loading,
+    error,
+    createProgram,
+    updateProgram,
+    deleteProgram,
+    refetch: fetchPrograms,
+  }
 }

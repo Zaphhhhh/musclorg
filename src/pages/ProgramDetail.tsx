@@ -45,6 +45,7 @@ export default function ProgramDetailPage() {
   const [phaseName, setPhaseName] = useState('')
   const [phaseType, setPhaseType] = useState<PeriodizationType>('lineaire')
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null)
+  const [libraryVisible, setLibraryVisible] = useState(true)
 
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
 
@@ -118,7 +119,7 @@ export default function ProgramDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/programs" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
             ← Programmes
           </Link>
@@ -134,8 +135,17 @@ export default function ProgramDetailPage() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <main className="max-w-6xl mx-auto px-6 py-8 flex gap-6 items-start">
-          <ExerciseLibraryPanel exercises={exercises} loading={exercisesLoading} />
+        <main className="max-w-[1800px] mx-auto px-6 py-8 flex gap-4 items-start">
+          <button
+            onClick={() => setLibraryVisible((v) => !v)}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--border)] rounded-md px-2 py-1.5 shrink-0"
+            title={libraryVisible ? 'Masquer la bibliotheque' : 'Afficher la bibliotheque'}
+          >
+            {libraryVisible ? '◂' : '▸'}
+          </button>
+          {libraryVisible && (
+            <ExerciseLibraryPanel exercises={exercises} loading={exercisesLoading} />
+          )}
 
           <div className="flex-1 flex flex-col gap-6 min-w-0">
             {program.phases.map((phase) => (

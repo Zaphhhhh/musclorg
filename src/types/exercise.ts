@@ -41,9 +41,11 @@ export interface Exercise {
   default_rest_seconds: number | null
   warmup_enabled: boolean
   warmup_config: WarmupConfig | null
-  // Record personnel actuel, sert de base au calcul "poids en % de PR"
-  // dans un bloc. Distinct des default_* qui ne sont que des suggestions.
-  current_pr: number | null
+  // Record personnel actuel: poids + nb de reps realisees (pas force
+  // ment un 1RM pur). Sert de base au calcul "poids en % de PR" dans
+  // un bloc. Distinct des default_* qui ne sont que des suggestions.
+  pr_weight: number | null
+  pr_reps: number | null
   created_at: string
   updated_at: string
 }
