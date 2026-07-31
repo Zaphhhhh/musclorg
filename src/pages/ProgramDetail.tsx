@@ -11,6 +11,7 @@ import {
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useProgramDetail } from '../hooks/useProgramDetail'
+import { usePrograms } from '../hooks/usePrograms'
 import { useExercises } from '../hooks/useExercises'
 import ExerciseLibraryPanel from '../components/programs/ExerciseLibraryPanel'
 import PhaseSection from '../components/programs/PhaseSection'
@@ -40,8 +41,10 @@ export default function ProgramDetailPage() {
     reorderBlocksInSession,
     copySessionToWeek,
     copyBlockToSession,
+    copyPhaseToProgram,
   } = useProgramDetail(id)
   const { exercises, loading: exercisesLoading } = useExercises()
+  const { programs } = usePrograms()
 
   const [addingPhase, setAddingPhase] = useState(false)
   const [phaseName, setPhaseName] = useState('')
@@ -73,6 +76,11 @@ export default function ProgramDetailPage() {
         )
       ) ?? [],
     [program]
+  )
+
+  const allProgramOptions = useMemo(
+    () => programs.map((p) => ({ id: p.id, label: p.name })),
+    [programs]
   )
 
   const sensors = useSensors(
@@ -191,6 +199,8 @@ export default function ProgramDetailPage() {
                 allSessionOptions={allSessionOptions}
                 onCopySessionToWeek={copySessionToWeek}
                 onCopyBlockToSession={copyBlockToSession}
+                allProgramOptions={allProgramOptions}
+                onCopyPhaseToProgram={copyPhaseToProgram}
               />
             ))}
 

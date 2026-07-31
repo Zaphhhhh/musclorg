@@ -393,6 +393,85 @@ export function useProgramDetail(programId: string | undefined) {
     [findBlock, findSession, fetchProgram]
   )
 
+  // Copie un mesocycle (phase) entier, avec toutes ses semaines/seances/
+  // blocs, vers un programme cible (peut etre le meme programme, pour
+  // une simple duplication, ou un autre programme de l'utilisateur).
+  const copyPhaseToProgram = useCallback(
+    async (phaseId: string, targetProgramId: string) => {
+      const sourcePhase = program?.phases.find((p) => p.id === phaseId)
+      if (!sourcePhase) return { error: 'Phase source introuvable' }
+
+      const { count } = await supabase
+        .from('phases')
+        .select('id', { count: 'exact', head: true })
+        .eq('program_id', targetProgramId)
+
+      const { data: newPhase, error: phaseError } = await supabase
+        .from('phases')
+        .insert({
+          program_id: targetProgramId,
+          name: sourcePhase.name,
+          periodization_type: sourcePhase.periodization_type,
+          order_index: count ?? 0,
+          volume_config: sourcePhase.volume_config,
+        })
+        .select()
+        .single()
+
+      if (phaseError || !newPhase) return { error: phaseError?.message ?? 'Erreur' }
+
+      for (const week of sourcePhase.weeks) {
+        const { data: newWeek, error: weekError } = await supabase
+          .from('weeks')
+          .insert({
+            phase_id: newPhase.id,
+            week_number: week.week_number,
+            is_deload: week.is_deload,
+          })
+          .select()
+          .single()
+        if (weekError || !newWeek) continue
+
+        for (const session of week.sessions) {
+          const { data: newSession, error: sessionError } = await supabase
+            .from('sessions')
+            .insert({
+              week_id: newWeek.id,
+              name: session.name,
+              day_of_week: session.day_of_week,
+              order_index: session.order_index,
+            })
+            .select()
+            .single()
+          if (sessionError || !newSession) continue
+
+          if (session.session_blocks.length > 0) {
+            const blockCopies = session.session_blocks.map((block) => ({
+              session_id: newSession.id,
+              exercise_id: block.exercise_id,
+              order_index: block.order_index,
+              sets: block.sets,
+              reps: block.reps,
+              weight: block.weight,
+              weight_mode: block.weight_mode,
+              weight_pct: block.weight_pct,
+              set_overrides: block.set_overrides,
+              rest_seconds: block.rest_seconds,
+              set_strategy: block.set_strategy,
+              set_strategy_config: block.set_strategy_config,
+              is_accessory: block.is_accessory,
+            }))
+            await supabase.from('session_blocks').insert(blockCopies)
+          }
+        }
+      }
+
+      if (targetProgramId === programId) await fetchProgram()
+      return { error: null }
+    },
+    [program, programId, fetchProgram]
+  )
+
   return {
     program,
     loading,
@@ -411,5 +490,6 @@ export function useProgramDetail(programId: string | undefined) {
     reorderBlocksInSession,
     copySessionToWeek,
     copyBlockToSession,
+    copyPhaseToProgram,
   }
 }

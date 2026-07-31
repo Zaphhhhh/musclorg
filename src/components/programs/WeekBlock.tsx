@@ -3,6 +3,7 @@ import SessionCard from './SessionCard'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Select from '../ui/Select'
+import { TrashIcon } from '../ui/icons'
 import { DAYS_OF_WEEK } from '../../types/program'
 import type { WeekWithSessions, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
@@ -62,8 +63,13 @@ export default function WeekBlock({
             Deload
           </span>
         )}
-        <button onClick={onDeleteWeek} className="text-xs text-[var(--danger)] ml-auto">
-          Supprimer la semaine
+        <button
+          onClick={onDeleteWeek}
+          className="text-[var(--text-muted)] hover:text-[var(--danger)] ml-auto"
+          aria-label="Supprimer la semaine"
+          title="Supprimer la semaine"
+        >
+          <TrashIcon className="w-3.5 h-3.5" />
         </button>
       </div>
 

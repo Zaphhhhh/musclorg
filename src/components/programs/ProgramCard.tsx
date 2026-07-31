@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
+import { TrashIcon } from '../ui/icons'
 import type { Program } from '../../types/program'
 
 interface ProgramCardProps {
@@ -97,9 +98,11 @@ export default function ProgramCard({ program, onUpdate, onDelete }: ProgramCard
         <Button
           variant="ghost"
           onClick={onDelete}
-          className="text-xs px-3 py-1.5 text-[var(--danger)]"
+          className="px-2 py-1.5 text-[var(--danger)]"
+          aria-label="Supprimer le programme"
+          title="Supprimer le programme"
         >
-          Supprimer
+          <TrashIcon className="w-4 h-4" />
         </Button>
       </div>
     </div>

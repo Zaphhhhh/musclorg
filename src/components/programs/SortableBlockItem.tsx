@@ -5,6 +5,7 @@ import Select from '../ui/Select'
 import StrategyConfigEditor from './StrategyConfigEditor'
 import SetPreview from './SetPreview'
 import CopyPicker from './CopyPicker'
+import { CopyIcon, TrashIcon } from '../ui/icons'
 import { computeSets, resolveBaseWeight } from '../../lib/computeSets'
 import { SET_STRATEGIES, SET_STRATEGY_LABELS } from '../../types/setStrategy'
 import type { SetStrategyType } from '../../types/setStrategy'
@@ -88,16 +89,19 @@ export default function SortableBlockItem({
         <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setCopying((c) => !c)}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)]"
+            className="text-[var(--text-muted)] hover:text-[var(--accent)]"
+            aria-label="Copier ce bloc"
+            title="Copier ce bloc"
           >
-            Copier
+            <CopyIcon className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onDelete}
-            className="text-xs text-[var(--danger)]"
+            className="text-[var(--text-muted)] hover:text-[var(--danger)]"
             aria-label="Supprimer le bloc"
+            title="Supprimer le bloc"
           >
-            Supprimer
+            <TrashIcon className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

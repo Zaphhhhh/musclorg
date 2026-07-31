@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import SortableBlockItem from './SortableBlockItem'
 import CopyPicker from './CopyPicker'
+import { CopyIcon, TrashIcon } from '../ui/icons'
 import type { SessionWithBlocks } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 import type { SessionBlock } from '../../types/program'
@@ -96,12 +97,19 @@ export default function SessionCard({
           <div className="flex gap-2 shrink-0">
             <button
               onClick={() => setCopying((c) => !c)}
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)]"
+              className="text-[var(--text-muted)] hover:text-[var(--accent)]"
+              aria-label="Copier cette seance"
+              title="Copier cette seance"
             >
-              Copier
+              <CopyIcon className="w-3.5 h-3.5" />
             </button>
-            <button onClick={onDeleteSession} className="text-xs text-[var(--danger)]">
-              Suppr.
+            <button
+              onClick={onDeleteSession}
+              className="text-[var(--text-muted)] hover:text-[var(--danger)]"
+              aria-label="Supprimer cette seance"
+              title="Supprimer cette seance"
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         )}

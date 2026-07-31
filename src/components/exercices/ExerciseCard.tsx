@@ -1,4 +1,5 @@
 import Button from '../ui/Button'
+import { TrashIcon } from '../ui/icons'
 import type { Exercise } from '../../types/exercise'
 
 interface ExerciseCardProps {
@@ -62,8 +63,14 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCar
       )}
 
       <div className="flex gap-2 mt-1">
-        <Button variant="ghost" onClick={onDelete} className="text-xs px-3 py-1.5 text-[var(--danger)]">
-          Supprimer
+        <Button
+          variant="ghost"
+          onClick={onDelete}
+          className="px-2 py-1.5 text-[var(--danger)]"
+          aria-label="Supprimer l'exercice"
+          title="Supprimer l'exercice"
+        >
+          <TrashIcon className="w-4 h-4" />
         </Button>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import WeekBlock from './WeekBlock'
+import CopyPicker from './CopyPicker'
 import Button from '../ui/Button'
+import { CopyIcon, TrashIcon } from '../ui/icons'
 import { PERIODIZATION_LABELS } from '../../types/program'
 import type { PhaseWithWeeks, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
@@ -26,6 +28,8 @@ interface PhaseSectionProps {
   allSessionOptions: CopyOption[]
   onCopySessionToWeek: (sessionId: string, targetWeekId: string) => void
   onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
+  allProgramOptions: CopyOption[]
+  onCopyPhaseToProgram: (phaseId: string, targetProgramId: string) => void
 }
 
 export default function PhaseSection({
@@ -43,8 +47,11 @@ export default function PhaseSection({
   allSessionOptions,
   onCopySessionToWeek,
   onCopyBlockToSession,
+  allProgramOptions,
+  onCopyPhaseToProgram,
 }: PhaseSectionProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [copying, setCopying] = useState(false)
 
   return (
     <section className="bg-[var(--surface)]/40 border border-[var(--border)] rounded-2xl p-5">
@@ -66,11 +73,38 @@ export default function PhaseSection({
           <Button onClick={() => onAddWeek(true)} variant="secondary" className="text-xs px-3 py-1.5">
             + Deload
           </Button>
-          <button onClick={onDeletePhase} className="text-xs text-[var(--danger)]">
-            Supprimer
+          <button
+            onClick={() => setCopying((c) => !c)}
+            className="text-[var(--text-muted)] hover:text-[var(--accent)]"
+            aria-label="Copier ce mesocycle"
+            title="Copier ce mesocycle"
+          >
+            <CopyIcon />
+          </button>
+          <button
+            onClick={onDeletePhase}
+            className="text-[var(--text-muted)] hover:text-[var(--danger)]"
+            aria-label="Supprimer ce mesocycle"
+            title="Supprimer ce mesocycle"
+          >
+            <TrashIcon />
           </button>
         </div>
       </div>
+
+      {copying && (
+        <div className="mb-4 max-w-xs">
+          <CopyPicker
+            label="Copier ce mesocycle vers le programme..."
+            options={allProgramOptions}
+            onConfirm={(targetProgramId) => {
+              onCopyPhaseToProgram(phase.id, targetProgramId)
+              setCopying(false)
+            }}
+            onCancel={() => setCopying(false)}
+          />
+        </div>
+      )}
 
       {!collapsed && (
         <div className="flex flex-col gap-6">
