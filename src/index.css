@@ -1,33 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  /* Base */
-  --bg: #101114;
-  --surface: #1a1c21;
-  --surface-2: #21232a;
-  --border: #2b2e35;
+  /* Base - palette 16-bit chaude, façon coucher de soleil / arcade */
+  --bg: #2b1508;
+  --surface: #3d2013;
+  --surface-2: #4f2b19;
+  --border: #b5651d;
 
-  /* Text */
-  --text: #edebe6;
-  --text-muted: #8d9099;
+  /* Texte */
+  --text: #f6e6c8;
+  --text-muted: #c9a06a;
 
-  /* Accent (acier/cobalt — pas le orange/terracotta ni le vert acide par defaut) */
-  --accent: #4c5fff;
-  --accent-hover: #6472ff;
-  --accent-text: #ffffff;
+  /* Accent (orange vif, energie arcade) */
+  --accent: #ff6b35;
+  --accent-hover: #ff8c5a;
+  --accent-text: #2b1508;
 
-  /* Signal de progression / record */
-  --pr: #f2c245;
+  /* Or / record / highlight (piece, etoile) */
+  --pr: #ffc93c;
 
   /* Etats */
-  --danger: #ef4444;
-  --success: #34d399;
+  --danger: #e63946;
+  --success: #a8d858;
 
-  --shadow: rgba(0, 0, 0, 0.35) 0 10px 30px -10px;
+  /* Ombre "pixel" dure, pas de flou, decalee */
+  --pixel-shadow: #1a0d05;
+  --shadow: 4px 4px 0 var(--pixel-shadow);
 
-  --font-display: 'Oswald', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: 'Press Start 2P', system-ui, sans-serif;
+  --font-body: 'VT323', ui-monospace, monospace;
+  --font-mono: 'VT323', ui-monospace, monospace;
 }
 
 * {
@@ -44,8 +46,27 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-size: 19px;
+  -webkit-font-smoothing: none;
+  image-rendering: pixelated;
+  position: relative;
+}
+
+/* Legere trame de scanlines, discrete, pour l'ambiance CRT */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.35;
 }
 
 #root {
@@ -60,6 +81,23 @@ h3 {
   letter-spacing: 0.02em;
   color: var(--text);
   margin: 0;
+  line-height: 1.5;
+}
+
+/* Tailles adaptees: Press Start 2P est tres large, on descend les
+   tailles Tailwind par defaut pour que les titres restent lisibles
+   et ne debordent pas. */
+h1.text-xl,
+.text-xl {
+  font-size: 1.05rem;
+}
+h1.text-2xl,
+.text-2xl {
+  font-size: 1.3rem;
+}
+h3.text-lg,
+.text-lg {
+  font-size: 0.95rem;
 }
 
 .font-mono-num {
@@ -67,20 +105,33 @@ h3 {
   font-variant-numeric: tabular-nums;
 }
 
-/* Motif signature : moletage de barre, utilise comme separateur */
+/* Motif signature: pointilles pixel en guise de separateur */
 .knurl-divider {
   height: 6px;
   background-image: repeating-linear-gradient(
-    115deg,
-    var(--border) 0px,
-    var(--border) 2px,
-    transparent 2px,
-    transparent 7px
+    90deg,
+    var(--pr) 0px,
+    var(--pr) 6px,
+    transparent 6px,
+    transparent 12px
   );
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--pr);
   outline-offset: 2px;
+}
+
+/* ============================================================
+   RESET RETRO: coins nets partout, aucun arrondi Tailwind.
+   Catch-all sur toute classe contenant "rounded-" ou "rounded".
+   ============================================================ */
+[class*='rounded'] {
+  border-radius: 0 !important;
+}
+
+/* Bordures plus epaisses par defaut pour le cote "pixel-art" */
+.border {
+  border-width: 2px !important;
 }

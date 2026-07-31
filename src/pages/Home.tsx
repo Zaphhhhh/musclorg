@@ -5,14 +5,16 @@ import { usePrograms } from '../hooks/usePrograms'
 import { useProgramDetail } from '../hooks/useProgramDetail'
 import { useExercises } from '../hooks/useExercises'
 import { useLastPerformedSession } from '../hooks/useLastPerformedSession'
+import { useProfile } from '../hooks/useProfile'
 import Button from '../components/ui/Button'
 import WeekOverview from '../components/dashboard/WeekOverview'
 import { PERIODIZATION_LABELS } from '../types/program'
 
 export default function HomePage() {
   const { session, signOut } = useAuth()
+  const { profile } = useProfile()
   const email = session?.user.email ?? ''
-  const firstName = email.split('@')[0]
+  const displayName = profile?.display_name?.trim() || email.split('@')[0]
 
   const { programs, loading: programsLoading } = usePrograms()
   const mostRecentProgram = programs[0]
@@ -80,7 +82,7 @@ export default function HomePage() {
       <div className="knurl-divider" />
 
       <main className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-2xl mb-1">Salut, {firstName}</h2>
+        <h2 className="text-2xl mb-1">Salut, {displayName}</h2>
         <p className="text-[var(--text-muted)] mb-10">Voici un apercu de ta semaine.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
