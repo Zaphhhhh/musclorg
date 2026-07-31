@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import Select from '../ui/Select'
 import StrategyConfigEditor from './StrategyConfigEditor'
 import SetPreview from './SetPreview'
+import CopyPicker from './CopyPicker'
 import { computeSets, resolveBaseWeight } from '../../lib/computeSets'
 import { SET_STRATEGIES, SET_STRATEGY_LABELS } from '../../types/setStrategy'
 import type { SetStrategyType } from '../../types/setStrategy'
@@ -11,12 +12,19 @@ import type { SessionBlock } from '../../types/program'
 import type { SetOverride } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 
+interface CopyOption {
+  id: string
+  label: string
+}
+
 interface SortableBlockItemProps {
   block: SessionBlock
   exercise: Exercise | undefined
   onUpdate: (updates: Partial<SessionBlock>) => void
   onStrategyChange: (strategy: SetStrategyType) => void
   onDelete: () => void
+  allSessionOptions: CopyOption[]
+  onCopyToSession: (blockId: string, targetSessionId: string) => void
 }
 
 export default function SortableBlockItem({
@@ -25,8 +33,11 @@ export default function SortableBlockItem({
   onUpdate,
   onStrategyChange,
   onDelete,
+  allSessionOptions,
+  onCopyToSession,
 }: SortableBlockItemProps) {
   const [collapsed, setCollapsed] = useState(true)
+  const [copying, setCopying] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.id,
@@ -74,14 +85,34 @@ export default function SortableBlockItem({
             <span className="font-medium truncate">{exercise?.name ?? 'Exercice supprime'}</span>
           </button>
         </div>
-        <button
-          onClick={onDelete}
-          className="text-xs text-[var(--danger)] shrink-0"
-          aria-label="Supprimer le bloc"
-        >
-          Supprimer
-        </button>
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => setCopying((c) => !c)}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)]"
+          >
+            Copier
+          </button>
+          <button
+            onClick={onDelete}
+            className="text-xs text-[var(--danger)]"
+            aria-label="Supprimer le bloc"
+          >
+            Supprimer
+          </button>
+        </div>
       </div>
+
+      {copying && (
+        <CopyPicker
+          label="Copier ce bloc vers..."
+          options={allSessionOptions}
+          onConfirm={(targetSessionId) => {
+            onCopyToSession(block.id, targetSessionId)
+            setCopying(false)
+          }}
+          onCancel={() => setCopying(false)}
+        />
+      )}
 
       {collapsed ? (
         <button

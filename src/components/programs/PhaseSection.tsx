@@ -6,6 +6,11 @@ import type { PhaseWithWeeks, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 import type { SetStrategyType } from '../../types/setStrategy'
 
+interface CopyOption {
+  id: string
+  label: string
+}
+
 interface PhaseSectionProps {
   phase: PhaseWithWeeks
   exercisesById: Map<string, Exercise>
@@ -17,6 +22,10 @@ interface PhaseSectionProps {
   onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) => void
   onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
+  allWeekOptions: CopyOption[]
+  allSessionOptions: CopyOption[]
+  onCopySessionToWeek: (sessionId: string, targetWeekId: string) => void
+  onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
 }
 
 export default function PhaseSection({
@@ -30,6 +39,10 @@ export default function PhaseSection({
   onUpdateBlock,
   onStrategyChange,
   onDeleteBlock,
+  allWeekOptions,
+  allSessionOptions,
+  onCopySessionToWeek,
+  onCopyBlockToSession,
 }: PhaseSectionProps) {
   const [collapsed, setCollapsed] = useState(false)
 
@@ -75,6 +88,10 @@ export default function PhaseSection({
                 onStrategyChange={onStrategyChange}
                 onDeleteBlock={onDeleteBlock}
                 onDeleteSession={onDeleteSession}
+                allWeekOptions={allWeekOptions}
+                allSessionOptions={allSessionOptions}
+                onCopySessionToWeek={onCopySessionToWeek}
+                onCopyBlockToSession={onCopyBlockToSession}
               />
             ))
           )}

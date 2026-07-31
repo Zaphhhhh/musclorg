@@ -38,6 +38,8 @@ export default function ProgramDetailPage() {
     setBlockStrategy,
     deleteBlock,
     reorderBlocksInSession,
+    copySessionToWeek,
+    copyBlockToSession,
   } = useProgramDetail(id)
   const { exercises, loading: exercisesLoading } = useExercises()
 
@@ -48,6 +50,30 @@ export default function ProgramDetailPage() {
   const [libraryVisible, setLibraryVisible] = useState(true)
 
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
+
+  const allWeekOptions = useMemo(
+    () =>
+      program?.phases.flatMap((phase) =>
+        phase.weeks.map((week) => ({
+          id: week.id,
+          label: `${phase.name} · Semaine ${week.week_number}${week.is_deload ? ' (deload)' : ''}`,
+        }))
+      ) ?? [],
+    [program]
+  )
+
+  const allSessionOptions = useMemo(
+    () =>
+      program?.phases.flatMap((phase) =>
+        phase.weeks.flatMap((week) =>
+          week.sessions.map((session) => ({
+            id: session.id,
+            label: `${phase.name} · S${week.week_number} · ${session.name}`,
+          }))
+        )
+      ) ?? [],
+    [program]
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -161,6 +187,10 @@ export default function ProgramDetailPage() {
                 onUpdateBlock={(blockId, updates) => updateBlock(blockId, updates)}
                 onStrategyChange={(blockId, strategy) => setBlockStrategy(blockId, strategy)}
                 onDeleteBlock={(blockId) => deleteBlock(blockId)}
+                allWeekOptions={allWeekOptions}
+                allSessionOptions={allSessionOptions}
+                onCopySessionToWeek={copySessionToWeek}
+                onCopyBlockToSession={copyBlockToSession}
               />
             ))}
 

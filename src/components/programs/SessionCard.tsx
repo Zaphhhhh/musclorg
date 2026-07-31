@@ -2,11 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import SortableBlockItem from './SortableBlockItem'
+import CopyPicker from './CopyPicker'
 import type { SessionWithBlocks } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 import type { SessionBlock } from '../../types/program'
 import type { SetStrategyType } from '../../types/setStrategy'
 import { DAYS_OF_WEEK } from '../../types/program'
+
+interface CopyOption {
+  id: string
+  label: string
+}
 
 interface SessionCardProps {
   session: SessionWithBlocks
@@ -15,6 +21,10 @@ interface SessionCardProps {
   onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
   onDeleteSession: () => void
+  allWeekOptions: CopyOption[]
+  allSessionOptions: CopyOption[]
+  onCopySessionToWeek: (sessionId: string, targetWeekId: string) => void
+  onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
 }
 
 export default function SessionCard({
@@ -24,8 +34,13 @@ export default function SessionCard({
   onStrategyChange,
   onDeleteBlock,
   onDeleteSession,
+  allWeekOptions,
+  allSessionOptions,
+  onCopySessionToWeek,
+  onCopyBlockToSession,
 }: SessionCardProps) {
   const [collapsed, setCollapsed] = useState(true)
+  const [copying, setCopying] = useState(false)
   const blockCountRef = useRef(session.session_blocks.length)
   // Empeche un clic parasite (souvent declenche par le drop lui-meme)
   // de re-fermer la seance juste apres l'auto-depliage.
@@ -78,11 +93,31 @@ export default function SessionCard({
           </div>
         </button>
         {!collapsed && (
-          <button onClick={onDeleteSession} className="text-xs text-[var(--danger)] shrink-0">
-            Suppr.
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setCopying((c) => !c)}
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)]"
+            >
+              Copier
+            </button>
+            <button onClick={onDeleteSession} className="text-xs text-[var(--danger)]">
+              Suppr.
+            </button>
+          </div>
         )}
       </div>
+
+      {copying && (
+        <CopyPicker
+          label="Copier cette seance vers..."
+          options={allWeekOptions}
+          onConfirm={(targetWeekId) => {
+            onCopySessionToWeek(session.id, targetWeekId)
+            setCopying(false)
+          }}
+          onCancel={() => setCopying(false)}
+        />
+      )}
 
       {collapsed ? (
         <button onClick={toggleCollapsed} className="text-xs text-[var(--text-muted)] text-left">
@@ -106,6 +141,8 @@ export default function SessionCard({
                   onUpdate={(updates) => onUpdateBlock(block.id, updates)}
                   onStrategyChange={(strategy) => onStrategyChange(block.id, strategy)}
                   onDelete={() => onDeleteBlock(block.id)}
+                  allSessionOptions={allSessionOptions}
+                  onCopyToSession={onCopyBlockToSession}
                 />
               ))
             )}

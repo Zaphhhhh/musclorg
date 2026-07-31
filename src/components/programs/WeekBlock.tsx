@@ -8,6 +8,11 @@ import type { WeekWithSessions, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 import type { SetStrategyType } from '../../types/setStrategy'
 
+interface CopyOption {
+  id: string
+  label: string
+}
+
 interface WeekBlockProps {
   week: WeekWithSessions
   exercisesById: Map<string, Exercise>
@@ -17,6 +22,10 @@ interface WeekBlockProps {
   onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
   onDeleteSession: (sessionId: string) => void
+  allWeekOptions: CopyOption[]
+  allSessionOptions: CopyOption[]
+  onCopySessionToWeek: (sessionId: string, targetWeekId: string) => void
+  onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
 }
 
 export default function WeekBlock({
@@ -28,6 +37,10 @@ export default function WeekBlock({
   onStrategyChange,
   onDeleteBlock,
   onDeleteSession,
+  allWeekOptions,
+  allSessionOptions,
+  onCopySessionToWeek,
+  onCopyBlockToSession,
 }: WeekBlockProps) {
   const [addingSession, setAddingSession] = useState(false)
   const [sessionName, setSessionName] = useState('')
@@ -64,6 +77,10 @@ export default function WeekBlock({
             onStrategyChange={onStrategyChange}
             onDeleteBlock={onDeleteBlock}
             onDeleteSession={() => onDeleteSession(session.id)}
+            allWeekOptions={allWeekOptions}
+            allSessionOptions={allSessionOptions}
+            onCopySessionToWeek={onCopySessionToWeek}
+            onCopyBlockToSession={onCopyBlockToSession}
           />
         ))}
 

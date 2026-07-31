@@ -297,6 +297,102 @@ export function useProgramDetail(programId: string | undefined) {
     []
   )
 
+  // --- Copie ---
+  const findSession = useCallback(
+    (sessionId: string) =>
+      program?.phases.flatMap((p) => p.weeks).flatMap((w) => w.sessions).find((s) => s.id === sessionId),
+    [program]
+  )
+
+  const findBlock = useCallback(
+    (blockId: string) =>
+      program?.phases
+        .flatMap((p) => p.weeks)
+        .flatMap((w) => w.sessions)
+        .flatMap((s) => s.session_blocks)
+        .find((b) => b.id === blockId),
+    [program]
+  )
+
+  const copySessionToWeek = useCallback(
+    async (sessionId: string, targetWeekId: string) => {
+      const sourceSession = findSession(sessionId)
+      if (!sourceSession) return { error: 'Seance source introuvable' }
+
+      const targetWeek = program?.phases.flatMap((p) => p.weeks).find((w) => w.id === targetWeekId)
+      const orderIndex = targetWeek?.sessions.length ?? 0
+
+      const { data: newSession, error: sessionError } = await supabase
+        .from('sessions')
+        .insert({
+          week_id: targetWeekId,
+          name: sourceSession.name,
+          day_of_week: sourceSession.day_of_week,
+          order_index: orderIndex,
+        })
+        .select()
+        .single()
+
+      if (sessionError || !newSession) return { error: sessionError?.message ?? 'Erreur' }
+
+      if (sourceSession.session_blocks.length > 0) {
+        const blockCopies = sourceSession.session_blocks.map((block) => ({
+          session_id: newSession.id,
+          exercise_id: block.exercise_id,
+          order_index: block.order_index,
+          sets: block.sets,
+          reps: block.reps,
+          weight: block.weight,
+          weight_mode: block.weight_mode,
+          weight_pct: block.weight_pct,
+          set_overrides: block.set_overrides,
+          rest_seconds: block.rest_seconds,
+          set_strategy: block.set_strategy,
+          set_strategy_config: block.set_strategy_config,
+          is_accessory: block.is_accessory,
+        }))
+
+        const { error: blocksError } = await supabase.from('session_blocks').insert(blockCopies)
+        if (blocksError) return { error: blocksError.message }
+      }
+
+      await fetchProgram()
+      return { error: null }
+    },
+    [program, findSession, fetchProgram]
+  )
+
+  const copyBlockToSession = useCallback(
+    async (blockId: string, targetSessionId: string) => {
+      const sourceBlock = findBlock(blockId)
+      if (!sourceBlock) return { error: 'Bloc source introuvable' }
+
+      const targetSession = findSession(targetSessionId)
+      const orderIndex = targetSession?.session_blocks.length ?? 0
+
+      const { error } = await supabase.from('session_blocks').insert({
+        session_id: targetSessionId,
+        exercise_id: sourceBlock.exercise_id,
+        order_index: orderIndex,
+        sets: sourceBlock.sets,
+        reps: sourceBlock.reps,
+        weight: sourceBlock.weight,
+        weight_mode: sourceBlock.weight_mode,
+        weight_pct: sourceBlock.weight_pct,
+        set_overrides: sourceBlock.set_overrides,
+        rest_seconds: sourceBlock.rest_seconds,
+        set_strategy: sourceBlock.set_strategy,
+        set_strategy_config: sourceBlock.set_strategy_config,
+        is_accessory: sourceBlock.is_accessory,
+      })
+
+      if (error) return { error: error.message }
+      await fetchProgram()
+      return { error: null }
+    },
+    [findBlock, findSession, fetchProgram]
+  )
+
   return {
     program,
     loading,
@@ -313,5 +409,7 @@ export function useProgramDetail(programId: string | undefined) {
     setBlockStrategy,
     deleteBlock,
     reorderBlocksInSession,
+    copySessionToWeek,
+    copyBlockToSession,
   }
 }
