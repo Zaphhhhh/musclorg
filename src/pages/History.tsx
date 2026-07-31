@@ -1,0 +1,170 @@
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { useExercises } from '../hooks/useExercises'
+import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import Select from '../components/ui/Select'
+
+type Criterion = 'weight' | 'volume'
+
+const CRITERION_LABELS: Record<Criterion, string> = {
+  weight: 'Poids seul',
+  volume: 'Poids x reps (volume)',
+}
+
+export default function HistoryPage() {
+  const { exercises, loading: exercisesLoading } = useExercises()
+  const [exerciseId, setExerciseId] = useState<string>('')
+  const [criterion, setCriterion] = useState<Criterion>('weight')
+
+  const selectedId = exerciseId || exercises[0]?.id
+  const { entries, loading, error } = useExerciseHistory(selectedId)
+
+  const chartData = useMemo(() => {
+    const byDay = new Map<string, number>()
+
+    for (const entry of entries) {
+      const value = criterion === 'weight' ? entry.weight : entry.weight * (entry.reps ?? 0)
+      const current = byDay.get(entry.date)
+
+      if (criterion === 'weight') {
+        byDay.set(entry.date, current != null ? Math.max(current, value) : value)
+      } else {
+        byDay.set(entry.date, (current ?? 0) + value)
+      }
+    }
+
+    return Array.from(byDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, value]) => ({ date, value }))
+  }, [entries, criterion])
+
+  const exerciseNames = exercises.map((e) => e.name)
+  const selectedExercise = exercises.find((e) => e.id === selectedId)
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)]">
+      <header className="border-b border-[var(--border)]">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
+            ← Retour
+          </Link>
+          <h1 className="text-xl">Historique</h1>
+          <div />
+        </div>
+      </header>
+      <div className="knurl-divider" />
+
+      <main className="max-w-4xl mx-auto px-6 py-10">
+        {exercisesLoading ? (
+          <p className="text-[var(--text-muted)]">Chargement...</p>
+        ) : exercises.length === 0 ? (
+          <div className="border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
+            <p className="text-[var(--text-muted)]">
+              Aucun exercice pour l'instant.{' '}
+              <Link to="/exercises" className="text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                Ajoutes-en un
+              </Link>{' '}
+              d'abord.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-4 mb-8">
+              <div className="w-64">
+                <Select
+                  label="Exercice"
+                  options={exerciseNames}
+                  value={selectedExercise?.name ?? exerciseNames[0]}
+                  onChange={(e) => {
+                    const ex = exercises.find((x) => x.name === e.target.value)
+                    if (ex) setExerciseId(ex.id)
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm text-[var(--text-muted)]">Critere</label>
+                <div className="flex gap-2">
+                  {(['weight', 'volume'] as Criterion[]).map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setCriterion(c)}
+                      className={`text-sm px-3 py-2 rounded-md ${
+                        criterion === c
+                          ? 'bg-[var(--accent)] text-white'
+                          : 'bg-[var(--surface-2)] text-[var(--text-muted)] border border-[var(--border)]'
+                      }`}
+                    >
+                      {CRITERION_LABELS[c]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-sm text-[var(--danger)] bg-[var(--danger)]/10 rounded-md px-3 py-2 mb-6">
+                {error}
+              </p>
+            )}
+
+            {loading ? (
+              <p className="text-[var(--text-muted)]">Chargement...</p>
+            ) : chartData.length === 0 ? (
+              <div className="border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
+                <p className="text-[var(--text-muted)]">
+                  Pas encore de perf enregistree pour "{selectedExercise?.name}". Remplis tes
+                  series reelles depuis une seance pour voir l'evolution ici.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
+                <p className="text-sm text-[var(--text-muted)] mb-4">
+                  {selectedExercise?.name} — {CRITERION_LABELS[criterion]}
+                </p>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2b2e35" />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#8d9099"
+                        tick={{ fontSize: 12, fill: '#8d9099' }}
+                      />
+                      <YAxis stroke="#8d9099" tick={{ fontSize: 12, fill: '#8d9099' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1a1c21',
+                          border: '1px solid #2b2e35',
+                          borderRadius: 8,
+                          fontSize: 13,
+                        }}
+                        labelStyle={{ color: '#edebe6' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#4c5fff"
+                        strokeWidth={2}
+                        dot={{ r: 3, fill: '#4c5fff' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  )
+}

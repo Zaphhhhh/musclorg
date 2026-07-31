@@ -1,4 +1,5 @@
 import type { SetStrategyType, SetStrategyConfig } from './setStrategy'
+import type { Exercise } from './exercise'
 
 export const PERIODIZATION_TYPES = ['lineaire', 'oscillatoire', 'flat', 'custom'] as const
 export type PeriodizationType = (typeof PERIODIZATION_TYPES)[number]
@@ -98,4 +99,13 @@ export interface PhaseWithWeeks extends Phase {
 }
 export interface ProgramWithTree extends Program {
   phases: PhaseWithWeeks[]
+}
+
+// Pour la vue "seance a faire": bloc + exercice joints directement
+// (utilise par useSessionDetail, sans passer par tout l'arbre du programme)
+export interface SessionBlockWithExercise extends SessionBlock {
+  exercise: Exercise
+}
+export interface SessionWithExercises extends Session {
+  session_blocks: SessionBlockWithExercise[]
 }

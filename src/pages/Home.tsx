@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { usePrograms } from '../hooks/usePrograms'
@@ -18,9 +19,21 @@ export default function HomePage() {
   const { exercises } = useExercises()
   const exercisesById = new Map(exercises.map((e) => [e.id, e]))
 
-  const firstPhase = program?.phases[0]
-  const firstWeek = firstPhase?.weeks[0]
-  const weekSessions = firstWeek?.sessions ?? []
+  // Toutes les semaines du programme, dans l'ordre (phase 1/semaine 1,
+  // phase 1/semaine 2, ..., phase 2/semaine 1, ...)
+  const allWeeks =
+    program?.phases.flatMap((phase) => phase.weeks.map((week) => ({ phase, week }))) ?? []
+
+  const [weekIndex, setWeekIndex] = useState(0)
+
+  // Repart de la premiere semaine quand on change de programme
+  useEffect(() => {
+    setWeekIndex(0)
+  }, [mostRecentProgram?.id])
+
+  const clampedIndex = Math.min(weekIndex, Math.max(allWeeks.length - 1, 0))
+  const current = allWeeks[clampedIndex]
+  const weekSessions = current?.week.sessions ?? []
   const totalSets = weekSessions
     .flatMap((s) => s.session_blocks)
     .reduce((sum, b) => sum + b.sets, 0)
@@ -47,7 +60,7 @@ export default function HomePage() {
           <StatCard label="Seances programmees" value={String(weekSessions.length)} />
           <StatCard
             label="Phase actuelle"
-            value={firstPhase ? PERIODIZATION_LABELS[firstPhase.periodization_type] : '—'}
+            value={current ? PERIODIZATION_LABELS[current.phase.periodization_type] : '—'}
           />
         </div>
 
@@ -57,6 +70,9 @@ export default function HomePage() {
           </Link>
           <Link to="/programs">
             <Button variant="secondary">Mes programmes</Button>
+          </Link>
+          <Link to="/history">
+            <Button variant="secondary">Historique</Button>
           </Link>
         </div>
 
@@ -72,10 +88,10 @@ export default function HomePage() {
               pour voir tes seances de la semaine ici.
             </p>
           </section>
-        ) : weekSessions.length === 0 ? (
+        ) : allWeeks.length === 0 ? (
           <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
             <p className="text-[var(--text-muted)]">
-              "{mostRecentProgram.name}" n'a pas encore de seances configurees.{' '}
+              "{mostRecentProgram.name}" n'a pas encore de semaines configurees.{' '}
               <Link
                 to={`/programs/${mostRecentProgram.id}`}
                 className="text-[var(--accent)] hover:text-[var(--accent-hover)]"
@@ -86,12 +102,44 @@ export default function HomePage() {
             </p>
           </section>
         ) : (
-          <WeekOverview
-            programName={mostRecentProgram.name}
-            programId={mostRecentProgram.id}
-            sessions={weekSessions}
-            exercisesById={exercisesById}
-          />
+          <>
+            <div className="flex items-center justify-center gap-4 mt-12 mb-2">
+              <button
+                onClick={() => setWeekIndex((i) => Math.max(i - 1, 0))}
+                disabled={clampedIndex === 0}
+                className="text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed px-2"
+                aria-label="Semaine precedente"
+              >
+                ◂
+              </button>
+              <div className="text-center">
+                <p className="text-sm text-[var(--text-muted)]">{current.phase.name}</p>
+                <p className="font-medium">
+                  Semaine {current.week.week_number}
+                  {current.week.is_deload && (
+                    <span className="ml-2 text-xs text-[var(--pr)] bg-[var(--pr)]/10 rounded-full px-2 py-0.5">
+                      Deload
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setWeekIndex((i) => Math.min(i + 1, allWeeks.length - 1))}
+                disabled={clampedIndex === allWeeks.length - 1}
+                className="text-[var(--text-muted)] hover:text-[var(--text)] disabled:opacity-30 disabled:cursor-not-allowed px-2"
+                aria-label="Semaine suivante"
+              >
+                ▸
+              </button>
+            </div>
+
+            <WeekOverview
+              programName={mostRecentProgram.name}
+              programId={mostRecentProgram.id}
+              sessions={weekSessions}
+              exercisesById={exercisesById}
+            />
+          </>
         )}
       </main>
     </div>

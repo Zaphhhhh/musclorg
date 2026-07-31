@@ -4,6 +4,8 @@ import HomePage from './pages/Home'
 import ExercisesPage from './pages/Exercises'
 import ProgramsPage from './pages/Programs'
 import ProgramDetailPage from './pages/ProgramDetail'
+import WorkoutPage from './pages/Workout'
+import HistoryPage from './pages/History'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -40,6 +42,22 @@ function App() {
           element={
             <ProtectedRoute>
               <ProgramDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workout/:sessionId"
+          element={
+            <ProtectedRoute>
+              <WorkoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
             </ProtectedRoute>
           }
         />

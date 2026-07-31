@@ -57,9 +57,12 @@ export default function WeekOverview({
               ) : (
                 daySessions.map((session) => (
                   <div key={session.id} className="flex flex-col gap-1">
-                    <p className="text-sm font-semibold normal-case tracking-normal">
-                      {session.name}
-                    </p>
+                    <Link
+                      to={`/workout/${session.id}`}
+                      className="text-sm font-semibold normal-case tracking-normal text-[var(--text)] hover:text-[var(--accent)]"
+                    >
+                      {session.name} →
+                    </Link>
                     <ul className="flex flex-col gap-0.5">
                       {session.session_blocks.map((block) => (
                         <li key={block.id} className="text-xs text-[var(--text-muted)] truncate">
