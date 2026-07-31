@@ -29,23 +29,28 @@ export default function HistoryPage() {
   const { entries, loading, error } = useExerciseHistory(selectedId)
 
   const chartData = useMemo(() => {
-    const byDay = new Map<string, number>()
-
-    for (const entry of entries) {
-      const value = criterion === 'weight' ? entry.weight : entry.weight * (entry.reps ?? 0)
-      const current = byDay.get(entry.date)
-
-      if (criterion === 'weight') {
-        byDay.set(entry.date, current != null ? Math.max(current, value) : value)
-      } else {
-        byDay.set(entry.date, (current ?? 0) + value)
+    // Chaque serie loggee devient son propre point, positionne par ordre
+    // chronologique (x = index), pas par date brute — sinon plusieurs
+    // entrees le meme jour se retrouvaient a la meme position et se
+    // melangeaient. La date reste affichee en etiquette/infobulle.
+    const occurrenceCount = new Map<string, number>()
+    return entries.map((entry, i) => {
+      const occurrence = (occurrenceCount.get(entry.date) ?? 0) + 1
+      occurrenceCount.set(entry.date, occurrence)
+      return {
+        x: i,
+        date: entry.date,
+        occurrence,
+        value: criterion === 'weight' ? entry.weight : entry.weight * (entry.reps ?? 0),
       }
-    }
-
-    return Array.from(byDay.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, value]) => ({ date, value }))
+    })
   }, [entries, criterion])
+
+  const formatTick = (index: number) => {
+    const point = chartData[index]
+    if (!point) return ''
+    return point.occurrence > 1 ? `${point.date} (#${point.occurrence})` : point.date
+  }
 
   const exerciseNames = exercises.map((e) => e.name)
   const selectedExercise = exercises.find((e) => e.id === selectedId)
@@ -136,12 +141,15 @@ export default function HistoryPage() {
                     <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#2b2e35" />
                       <XAxis
-                        dataKey="date"
+                        dataKey="x"
                         stroke="#8d9099"
-                        tick={{ fontSize: 12, fill: '#8d9099' }}
+                        tick={{ fontSize: 11, fill: '#8d9099' }}
+                        tickFormatter={formatTick}
+                        interval="preserveStartEnd"
                       />
                       <YAxis stroke="#8d9099" tick={{ fontSize: 12, fill: '#8d9099' }} />
                       <Tooltip
+                        labelFormatter={(value: number) => formatTick(value)}
                         contentStyle={{
                           backgroundColor: '#1a1c21',
                           border: '1px solid #2b2e35',

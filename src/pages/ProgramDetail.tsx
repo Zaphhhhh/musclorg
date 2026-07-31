@@ -56,10 +56,10 @@ export default function ProgramDetailPage() {
 
   const allWeekOptions = useMemo(
     () =>
-      program?.phases.flatMap((phase) =>
+      program?.phases.flatMap((phase, phaseIndex) =>
         phase.weeks.map((week) => ({
           id: week.id,
-          label: `${phase.name} · Semaine ${week.week_number}${week.is_deload ? ' (deload)' : ''}`,
+          label: `M${phaseIndex + 1} · ${phase.name} · Semaine ${week.week_number}${week.is_deload ? ' (deload)' : ''}`,
         }))
       ) ?? [],
     [program]
@@ -67,11 +67,11 @@ export default function ProgramDetailPage() {
 
   const allSessionOptions = useMemo(
     () =>
-      program?.phases.flatMap((phase) =>
+      program?.phases.flatMap((phase, phaseIndex) =>
         phase.weeks.flatMap((week) =>
           week.sessions.map((session) => ({
             id: session.id,
-            label: `${phase.name} · S${week.week_number} · ${session.name}`,
+            label: `M${phaseIndex + 1} · ${phase.name} · S${week.week_number} · ${session.name}`,
           }))
         )
       ) ?? [],
@@ -182,10 +182,11 @@ export default function ProgramDetailPage() {
           )}
 
           <div className="flex-1 flex flex-col gap-6 min-w-0">
-            {program.phases.map((phase) => (
+            {program.phases.map((phase, phaseIndex) => (
               <PhaseSection
                 key={phase.id}
                 phase={phase}
+                phaseNumber={phaseIndex + 1}
                 exercisesById={exercisesById}
                 onAddWeek={(isDeload) => addWeek(phase.id, isDeload)}
                 onDeletePhase={() => deletePhase(phase.id)}

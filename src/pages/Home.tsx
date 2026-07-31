@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { usePrograms } from '../hooks/usePrograms'
 import { useProgramDetail } from '../hooks/useProgramDetail'
 import { useExercises } from '../hooks/useExercises'
+import { useLastPerformedSession } from '../hooks/useLastPerformedSession'
 import Button from '../components/ui/Button'
 import WeekOverview from '../components/dashboard/WeekOverview'
 import { PERIODIZATION_LABELS } from '../types/program'
@@ -20,9 +21,22 @@ export default function HomePage() {
   const exercisesById = new Map(exercises.map((e) => [e.id, e]))
 
   // Toutes les semaines du programme, dans l'ordre (phase 1/semaine 1,
-  // phase 1/semaine 2, ..., phase 2/semaine 1, ...)
-  const allWeeks =
-    program?.phases.flatMap((phase) => phase.weeks.map((week) => ({ phase, week }))) ?? []
+  // phase 1/semaine 2, ..., phase 2/semaine 1, ...). Memorise pour ne
+  // pas changer de reference a chaque render (utilise dans un effect).
+  const allWeeks = useMemo(
+    () =>
+      program?.phases.flatMap((phase, phaseIndex) =>
+        phase.weeks.map((week) => ({ phase, phaseNumber: phaseIndex + 1, week }))
+      ) ?? [],
+    [program]
+  )
+
+  const allSessionIds = useMemo(
+    () => allWeeks.flatMap(({ week }) => week.sessions.map((s) => s.id)),
+    [allWeeks]
+  )
+  const { sessionId: lastSessionId, loading: lastSessionLoading } =
+    useLastPerformedSession(allSessionIds)
 
   const [weekIndex, setWeekIndex] = useState(0)
 
@@ -30,6 +44,15 @@ export default function HomePage() {
   useEffect(() => {
     setWeekIndex(0)
   }, [mostRecentProgram?.id])
+
+  // Une fois qu'on sait sur quelle seance des perfs ont ete loggees en
+  // dernier, on ouvre directement la semaine qui la contient plutot que
+  // de rester bloque sur la semaine 1.
+  useEffect(() => {
+    if (!lastSessionId || allWeeks.length === 0) return
+    const idx = allWeeks.findIndex(({ week }) => week.sessions.some((s) => s.id === lastSessionId))
+    if (idx !== -1) setWeekIndex(idx)
+  }, [lastSessionId, allWeeks])
 
   const clampedIndex = Math.min(weekIndex, Math.max(allWeeks.length - 1, 0))
   const current = allWeeks[clampedIndex]
@@ -43,9 +66,14 @@ export default function HomePage() {
       <header className="border-b border-[var(--border)]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl">MusclOrg</h1>
-          <Button variant="ghost" onClick={() => signOut()}>
-            Se deconnecter
-          </Button>
+          <div className="flex gap-3">
+            <Link to="/profile">
+              <Button variant="ghost">Mon profil</Button>
+            </Link>
+            <Button variant="ghost" onClick={() => signOut()}>
+              Se deconnecter
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -76,7 +104,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {programsLoading || programDetailLoading ? (
+        {programsLoading || programDetailLoading || lastSessionLoading ? (
           <p className="text-[var(--text-muted)] mt-12">Chargement...</p>
         ) : !mostRecentProgram ? (
           <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
@@ -113,7 +141,9 @@ export default function HomePage() {
                 ◂
               </button>
               <div className="text-center">
-                <p className="text-sm text-[var(--text-muted)]">{current.phase.name}</p>
+                <p className="text-sm text-[var(--text-muted)]">
+                  M{current.phaseNumber} — {current.phase.name}
+                </p>
                 <p className="font-medium">
                   Semaine {current.week.week_number}
                   {current.week.is_deload && (

@@ -15,6 +15,7 @@ interface CopyOption {
 
 interface PhaseSectionProps {
   phase: PhaseWithWeeks
+  phaseNumber: number
   exercisesById: Map<string, Exercise>
   onAddWeek: (isDeload: boolean) => void
   onDeletePhase: () => void
@@ -34,6 +35,7 @@ interface PhaseSectionProps {
 
 export default function PhaseSection({
   phase,
+  phaseNumber,
   exercisesById,
   onAddWeek,
   onDeletePhase,
@@ -61,7 +63,11 @@ export default function PhaseSection({
           className="flex items-center gap-3 text-left"
         >
           <span className="text-[var(--text-muted)] text-sm">{collapsed ? '▸' : '▾'}</span>
-          <h3 className="text-lg">{phase.name}</h3>
+          <h3 className="text-lg">
+            <span className="text-[var(--text-muted)] font-normal">Mésocycle {phaseNumber}</span>
+            {' — '}
+            {phase.name}
+          </h3>
           <span className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 rounded-full px-2 py-0.5">
             {PERIODIZATION_LABELS[phase.periodization_type]}
           </span>

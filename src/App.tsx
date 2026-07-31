@@ -6,6 +6,7 @@ import ProgramsPage from './pages/Programs'
 import ProgramDetailPage from './pages/ProgramDetail'
 import WorkoutPage from './pages/Workout'
 import HistoryPage from './pages/History'
+import ProfilePage from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -58,6 +59,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

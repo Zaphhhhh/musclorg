@@ -5,6 +5,7 @@ export interface HistoryEntry {
   date: string // YYYY-MM-DD
   weight: number
   reps: number | null
+  loggedAt: string // timestamp precis, pour trier correctement les entrees du meme jour
 }
 
 export function useExerciseHistory(exerciseId: string | undefined) {
@@ -50,7 +51,7 @@ export function useExerciseHistory(exerciseId: string | undefined) {
       // 2. toutes les perfs reelles enregistrees sur ces blocs
       const { data: logs, error: logsError } = await supabase
         .from('set_logs')
-        .select('actual_reps, actual_weight, workout_log:workout_logs(performed_on)')
+        .select('actual_reps, actual_weight, created_at, workout_log:workout_logs(performed_on)')
         .in('session_block_id', blockIds)
         .not('actual_weight', 'is', null)
 
@@ -71,10 +72,13 @@ export function useExerciseHistory(exerciseId: string | undefined) {
             date: workoutLog?.performed_on ?? '',
             weight: l.actual_weight as number,
             reps: l.actual_reps as number | null,
+            loggedAt: l.created_at as string,
           }
         })
         .filter((e) => e.date)
-        .sort((a, b) => a.date.localeCompare(b.date))
+        // tri par date, puis par horodatage precis pour garder l'ordre
+        // reel entre plusieurs entrees enregistrees le meme jour
+        .sort((a, b) => a.date.localeCompare(b.date) || a.loggedAt.localeCompare(b.loggedAt))
 
       setEntries(parsed)
       setLoading(false)
