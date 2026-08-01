@@ -55,3 +55,19 @@ export function PencilIcon({ className = 'w-4 h-4' }: IconProps) {
     </svg>
   )
 }
+
+// Icone "profil" en pixel-art brut (grille de blocs), pour coller au
+// style 16-bit plutot qu'une icone au trait classique.
+export function PixelUserIcon({ className = 'w-5 h-5' }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 8 8" fill="currentColor" shapeRendering="crispEdges">
+      <rect x="2" y="0" width="4" height="1" />
+      <rect x="1" y="1" width="6" height="1" />
+      <rect x="1" y="2" width="6" height="1" />
+      <rect x="1" y="3" width="6" height="1" />
+      <rect x="2" y="4" width="4" height="1" />
+      <rect x="1" y="6" width="6" height="1" />
+      <rect x="0" y="7" width="8" height="1" />
+    </svg>
+  )
+}

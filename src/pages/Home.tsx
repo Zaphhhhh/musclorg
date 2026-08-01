@@ -8,6 +8,7 @@ import { useLastPerformedSession } from '../hooks/useLastPerformedSession'
 import { useProfile } from '../hooks/useProfile'
 import Button from '../components/ui/Button'
 import WeekOverview from '../components/dashboard/WeekOverview'
+import { PixelUserIcon } from '../components/ui/icons'
 import { PERIODIZATION_LABELS } from '../types/program'
 
 export default function HomePage() {
@@ -66,11 +67,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl">MusclOrg</h1>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
             <Link to="/profile">
-              <Button variant="ghost">Mon profil</Button>
+              <Button
+                variant="ghost"
+                className="p-2"
+                aria-label="Mon profil"
+                title="Mon profil"
+              >
+                <PixelUserIcon className="w-5 h-5" />
+              </Button>
             </Link>
             <Button variant="ghost" onClick={() => signOut()}>
               Se deconnecter
@@ -81,7 +89,7 @@ export default function HomePage() {
 
       <div className="knurl-divider" />
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         <h2 className="text-2xl mb-1">Salut, {displayName}</h2>
         <p className="text-[var(--text-muted)] mb-10">Voici un apercu de ta semaine.</p>
 
@@ -94,7 +102,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link to="/exercises">
             <Button variant="secondary">Gerer mes exercices</Button>
           </Link>
