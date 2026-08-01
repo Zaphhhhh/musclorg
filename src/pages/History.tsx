@@ -12,6 +12,7 @@ import {
 import { useExercises } from '../hooks/useExercises'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
 import Select from '../components/ui/Select'
+import Button from '../components/ui/Button'
 
 type Criterion = 'weight' | 'volume'
 
@@ -59,8 +60,10 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
-            ← Retour
+          <Link to="/">
+            <Button variant="secondary" className="p-2" aria-label="Retour" title="Retour">
+              ◂
+            </Button>
           </Link>
           <h1 className="text-xl">Historique</h1>
           <div />

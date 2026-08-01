@@ -5,6 +5,7 @@ import ExercisesPage from './pages/Exercises'
 import ProgramsPage from './pages/Programs'
 import ProgramDetailPage from './pages/ProgramDetail'
 import WorkoutPage from './pages/Workout'
+import TrainPage from './pages/Train'
 import HistoryPage from './pages/History'
 import ProfilePage from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -51,6 +52,14 @@ function App() {
           element={
             <ProtectedRoute>
               <WorkoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/train/:sessionId"
+          element={
+            <ProtectedRoute>
+              <TrainPage />
             </ProtectedRoute>
           }
         />

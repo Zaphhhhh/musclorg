@@ -5,6 +5,7 @@ import { computeSets, resolveBaseWeight } from '../lib/computeSets'
 import { SET_STRATEGY_LABELS } from '../types/setStrategy'
 import { DAYS_OF_WEEK } from '../types/program'
 import WorkoutSetTable from '../components/dashboard/WorkoutSetTable'
+import Button from '../components/ui/Button'
 
 export default function WorkoutPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -31,8 +32,10 @@ export default function WorkoutPage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
-            ← Retour
+          <Link to="/">
+            <Button variant="secondary" className="p-2" aria-label="Retour" title="Retour">
+              ◂
+            </Button>
           </Link>
           <h1 className="text-xl">{session.name}</h1>
           <div />

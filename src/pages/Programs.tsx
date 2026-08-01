@@ -37,8 +37,10 @@ export default function ProgramsPage() {
           <Link to="/" className="text-xl no-underline text-[var(--text)]">
             MusclOrg
           </Link>
-          <Link to="/" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
-            ← Retour
+          <Link to="/">
+            <Button variant="secondary" className="p-2" aria-label="Retour" title="Retour">
+              ◂
+            </Button>
           </Link>
         </div>
       </header>

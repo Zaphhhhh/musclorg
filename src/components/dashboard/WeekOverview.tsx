@@ -57,12 +57,23 @@ export default function WeekOverview({
               ) : (
                 daySessions.map((session) => (
                   <div key={session.id} className="flex flex-col gap-1">
-                    <Link
-                      to={`/workout/${session.id}`}
-                      className="text-sm font-semibold normal-case tracking-normal text-[var(--text)] hover:text-[var(--accent)]"
-                    >
-                      {session.name} →
-                    </Link>
+                    <div className="flex items-center justify-between gap-1">
+                      <Link
+                        to={`/workout/${session.id}`}
+                        className="text-sm font-semibold normal-case tracking-normal text-[var(--text)] hover:text-[var(--accent)]"
+                      >
+                        {session.name} →
+                      </Link>
+                      {session.session_blocks.length > 0 && (
+                        <Link
+                          to={`/train/${session.id}`}
+                          className="text-xs px-1.5 py-0.5 border-2 border-[var(--pr)] text-[var(--pr)] hover:bg-[var(--pr)] hover:text-[var(--bg)] shrink-0"
+                          title="Lancer le mode entrainement"
+                        >
+                          ▶
+                        </Link>
+                      )}
+                    </div>
                     <ul className="flex flex-col gap-0.5">
                       {session.session_blocks.map((block) => (
                         <li key={block.id} className="text-xs text-[var(--text-muted)] truncate">

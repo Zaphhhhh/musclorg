@@ -4,6 +4,7 @@ import type { SessionWithExercises } from '../types/program'
 
 export function useSessionDetail(sessionId: string | undefined) {
   const [session, setSession] = useState<SessionWithExercises | null>(null)
+  const [programId, setProgramId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,13 +15,19 @@ export function useSessionDetail(sessionId: string | undefined) {
 
     const { data, error } = await supabase
       .from('sessions')
-      .select('*, session_blocks(*, exercise:exercises(*))')
+      .select('*, session_blocks(*, exercise:exercises(*)), week:weeks(phase:phases(program_id))')
       .eq('id', sessionId)
       .order('order_index', { referencedTable: 'session_blocks' })
       .single()
 
     if (error) setError(error.message)
-    else setSession(data as unknown as SessionWithExercises)
+    else {
+      const raw = data as unknown as SessionWithExercises & {
+        week?: { phase?: { program_id: string } }
+      }
+      setProgramId(raw.week?.phase?.program_id ?? null)
+      setSession(raw)
+    }
 
     setLoading(false)
   }, [sessionId])
@@ -29,5 +36,5 @@ export function useSessionDetail(sessionId: string | undefined) {
     fetchSession()
   }, [fetchSession])
 
-  return { session, loading, error, refetch: fetchSession }
+  return { session, programId, loading, error, refetch: fetchSession }
 }

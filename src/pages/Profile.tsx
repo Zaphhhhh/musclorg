@@ -74,8 +74,10 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
-            ← Retour
+          <Link to="/">
+            <Button variant="secondary" className="p-2" aria-label="Retour" title="Retour">
+              ◂
+            </Button>
           </Link>
           <h1 className="text-xl">Mon profil</h1>
           <div />

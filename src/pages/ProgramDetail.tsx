@@ -154,8 +154,15 @@ export default function ProgramDetailPage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/programs" className="text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
-            ← Programmes
+          <Link to="/programs">
+            <Button
+              variant="secondary"
+              className="p-2"
+              aria-label="Retour aux programmes"
+              title="Retour aux programmes"
+            >
+              ◂
+            </Button>
           </Link>
           <h1 className="text-xl">{program.name}</h1>
           <div />
