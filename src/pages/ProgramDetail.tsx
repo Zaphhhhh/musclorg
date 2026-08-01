@@ -153,7 +153,7 @@ export default function ProgramDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
-        <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link to="/programs">
             <Button
               variant="secondary"
@@ -176,17 +176,19 @@ export default function ProgramDetailPage() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <main className="max-w-[1800px] mx-auto px-6 py-8 flex gap-4 items-start">
-          <button
-            onClick={() => setLibraryVisible((v) => !v)}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--border)] rounded-md px-2 py-1.5 shrink-0"
-            title={libraryVisible ? 'Masquer la bibliotheque' : 'Afficher la bibliotheque'}
-          >
-            {libraryVisible ? '◂' : '▸'}
-          </button>
-          {libraryVisible && (
-            <ExerciseLibraryPanel exercises={exercises} loading={exercisesLoading} />
-          )}
+        <main className="max-w-[1800px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-4 items-stretch lg:items-start">
+          <div className="flex lg:contents gap-2">
+            <button
+              onClick={() => setLibraryVisible((v) => !v)}
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--border)] px-2 py-1.5 shrink-0 self-start"
+              title={libraryVisible ? 'Masquer la bibliotheque' : 'Afficher la bibliotheque'}
+            >
+              {libraryVisible ? '◂' : '▸'}
+            </button>
+            {libraryVisible && (
+              <ExerciseLibraryPanel exercises={exercises} loading={exercisesLoading} />
+            )}
+          </div>
 
           <div className="flex-1 flex flex-col gap-6 min-w-0">
             {program.phases.map((phase, phaseIndex) => (

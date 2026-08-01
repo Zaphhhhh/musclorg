@@ -33,7 +33,7 @@ export default function ExerciseLibraryPanel({
 }) {
 
   return (
-    <aside className="w-64 shrink-0 bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 h-fit sticky top-6">
+    <aside className="w-full lg:w-64 shrink-0 bg-[var(--surface)] border border-[var(--border)] p-4 h-fit lg:sticky lg:top-6 max-h-64 lg:max-h-none overflow-y-auto lg:overflow-visible">
       <h3 className="text-sm mb-1">Bibliotheque</h3>
       <p className="text-xs text-[var(--text-muted)] mb-4">
         Glisse un exo dans une seance pour creer un bloc.

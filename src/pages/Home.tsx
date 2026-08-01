@@ -7,9 +7,12 @@ import { useExercises } from '../hooks/useExercises'
 import { useLastPerformedSession } from '../hooks/useLastPerformedSession'
 import { useProfile } from '../hooks/useProfile'
 import Button from '../components/ui/Button'
+import Select from '../components/ui/Select'
 import WeekOverview from '../components/dashboard/WeekOverview'
 import { PixelUserIcon } from '../components/ui/icons'
 import { PERIODIZATION_LABELS } from '../types/program'
+
+const SELECTED_PROGRAM_KEY = 'musclorg_selected_program_id'
 
 export default function HomePage() {
   const { session, signOut } = useAuth()
@@ -18,8 +21,18 @@ export default function HomePage() {
   const displayName = profile?.display_name?.trim() || email.split('@')[0]
 
   const { programs, loading: programsLoading } = usePrograms()
-  const mostRecentProgram = programs[0]
-  const { program, loading: programDetailLoading } = useProgramDetail(mostRecentProgram?.id)
+
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(() =>
+    localStorage.getItem(SELECTED_PROGRAM_KEY)
+  )
+  const selectedProgram =
+    programs.find((p) => p.id === selectedProgramId) ?? programs[0]
+
+  useEffect(() => {
+    if (selectedProgram) localStorage.setItem(SELECTED_PROGRAM_KEY, selectedProgram.id)
+  }, [selectedProgram?.id])
+
+  const { program, loading: programDetailLoading } = useProgramDetail(selectedProgram?.id)
   const { exercises } = useExercises()
   const exercisesById = new Map(exercises.map((e) => [e.id, e]))
 
@@ -46,7 +59,7 @@ export default function HomePage() {
   // Repart de la premiere semaine quand on change de programme
   useEffect(() => {
     setWeekIndex(0)
-  }, [mostRecentProgram?.id])
+  }, [selectedProgram?.id])
 
   // Une fois qu'on sait sur quelle seance des perfs ont ete loggees en
   // dernier, on ouvre directement la semaine qui la contient plutot que
@@ -114,9 +127,23 @@ export default function HomePage() {
           </Link>
         </div>
 
+        {programs.length > 1 && (
+          <div className="mt-8 max-w-xs">
+            <Select
+              label="Programme affiche"
+              options={programs.map((p) => p.name)}
+              value={selectedProgram?.name ?? ''}
+              onChange={(e) => {
+                const p = programs.find((prog) => prog.name === e.target.value)
+                if (p) setSelectedProgramId(p.id)
+              }}
+            />
+          </div>
+        )}
+
         {programsLoading || programDetailLoading || lastSessionLoading ? (
           <p className="text-[var(--text-muted)] mt-12">Chargement...</p>
-        ) : !mostRecentProgram ? (
+        ) : !selectedProgram ? (
           <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
             <p className="text-[var(--text-muted)]">
               Aucun programme pour l'instant.{' '}
@@ -129,9 +156,9 @@ export default function HomePage() {
         ) : allWeeks.length === 0 ? (
           <section className="mt-12 border border-dashed border-[var(--border)] rounded-xl p-10 text-center">
             <p className="text-[var(--text-muted)]">
-              "{mostRecentProgram.name}" n'a pas encore de semaines configurees.{' '}
+              "{selectedProgram.name}" n'a pas encore de semaines configurees.{' '}
               <Link
-                to={`/programs/${mostRecentProgram.id}`}
+                to={`/programs/${selectedProgram.id}`}
                 className="text-[var(--accent)] hover:text-[var(--accent-hover)]"
               >
                 Ouvre-le
@@ -174,8 +201,8 @@ export default function HomePage() {
             </div>
 
             <WeekOverview
-              programName={mostRecentProgram.name}
-              programId={mostRecentProgram.id}
+              programName={selectedProgram.name}
+              programId={selectedProgram.id}
               sessions={weekSessions}
               exercisesById={exercisesById}
             />

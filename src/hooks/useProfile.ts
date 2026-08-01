@@ -2,13 +2,18 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Profile, ProfileInput } from '../types/profile'
 
+// Cache en memoire (persiste entre les changements de page dans l'onglet,
+// pas entre rechargements). Evite le flash "email au lieu du pseudo" a
+// chaque montage de page, le temps que le fetch reponde.
+let cachedProfile: Profile | null = null
+
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(cachedProfile)
+  const [loading, setLoading] = useState(!cachedProfile)
   const [error, setError] = useState<string | null>(null)
 
   const fetchProfile = useCallback(async () => {
-    setLoading(true)
+    if (!cachedProfile) setLoading(true)
     setError(null)
 
     const {
@@ -27,7 +32,10 @@ export function useProfile() {
       .single()
 
     if (error) setError(error.message)
-    else setProfile(data as Profile)
+    else {
+      cachedProfile = data as Profile
+      setProfile(cachedProfile)
+    }
 
     setLoading(false)
   }, [])
@@ -52,7 +60,8 @@ export function useProfile() {
 
     if (error) return { error: error.message }
 
-    setProfile(data as Profile)
+    cachedProfile = data as Profile
+    setProfile(cachedProfile)
     return { error: null }
   }, [])
 

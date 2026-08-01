@@ -16,6 +16,26 @@ interface FlatSet {
   weight: number | null
 }
 
+interface Deviation {
+  exerciseName: string
+  setLabel: string
+  plannedReps: number | 'AMRAP'
+  actualReps: number | null
+  plannedWeight: number | null
+  actualWeight: number | null
+}
+
+function describeDeviation(d: Deviation): string {
+  const parts: string[] = []
+  if (d.actualReps != null && d.plannedReps !== 'AMRAP' && d.actualReps !== d.plannedReps) {
+    parts.push(`${d.plannedReps} → ${d.actualReps} reps`)
+  }
+  if (d.actualWeight != null && d.actualWeight !== d.plannedWeight) {
+    parts.push(`${d.plannedWeight ?? '?'} → ${d.actualWeight} kg`)
+  }
+  return parts.join(', ')
+}
+
 const MIN_REST = 60 // 1 min
 const MAX_REST = 600 // 10 min
 const REST_STEP = 30
@@ -29,8 +49,10 @@ function formatTime(totalSeconds: number) {
 
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
-  const { session, loading, error } = useSessionDetail(sessionId)
+  const { session, programId, loading, error } = useSessionDetail(sessionId)
   const { updateSetLog } = useWorkoutLog(sessionId)
+
+  const [deviations, setDeviations] = useState<Deviation[]>([])
 
   const [phase, setPhase] = useState<'loading' | 'config' | 'set' | 'rest' | 'done'>('loading')
   const [defaultRestSeconds, setDefaultRestSeconds] = useState(90)
@@ -121,11 +143,32 @@ export default function TrainPage() {
   const validateSet = () => {
     if (!current) return
 
+    const parsedActualReps = actualReps === '' ? null : Number(actualReps)
+    const parsedActualWeight = actualWeight === '' ? null : Number(actualWeight)
+
     updateSetLog(current.blockId, current.setIdx, {
       completed: true,
-      actual_reps: actualReps === '' ? null : Number(actualReps),
-      actual_weight: actualWeight === '' ? null : Number(actualWeight),
+      actual_reps: parsedActualReps,
+      actual_weight: parsedActualWeight,
     })
+
+    const repsChanged =
+      current.reps !== 'AMRAP' && parsedActualReps != null && parsedActualReps !== current.reps
+    const weightChanged = parsedActualWeight != null && parsedActualWeight !== current.weight
+
+    if (repsChanged || weightChanged) {
+      setDeviations((prev) => [
+        ...prev,
+        {
+          exerciseName: current.exerciseName,
+          setLabel: current.label,
+          plannedReps: current.reps,
+          actualReps: parsedActualReps,
+          plannedWeight: current.weight,
+          actualWeight: parsedActualWeight,
+        },
+      ])
+    }
 
     if (currentIndex >= flatSets.length - 1) {
       setPhase('done')
@@ -190,11 +233,41 @@ export default function TrainPage() {
   // --- Ecran fin de seance ---
   if (phase === 'done') {
     return (
-      <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-6 px-6 text-center">
+      <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-6 px-6 py-10 text-center">
         <h1 className="text-2xl">Seance terminee !</h1>
         <p className="text-[var(--text-muted)]">Bien joue, {session.name} est dans la poche.</p>
+
+        {deviations.length > 0 && (
+          <div className="bg-[var(--surface)] border-2 border-[var(--border)] p-4 max-w-md text-left flex flex-col gap-3">
+            <p className="text-sm text-[var(--pr)] uppercase tracking-wide">
+              Ecarts par rapport au prevu
+            </p>
+            <ul className="flex flex-col gap-1.5">
+              {deviations.map((d, i) => (
+                <li key={i} className="text-sm text-[var(--text)]">
+                  <span className="text-[var(--text-muted)]">
+                    {d.exerciseName} — {d.setLabel}:
+                  </span>{' '}
+                  <span className="font-mono-num">{describeDeviation(d)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-[var(--text-muted)] pt-2 border-t border-[var(--border)]">
+              Veux-tu adapter les prochaines seances de la semaine prochaine en fonction de ces
+              resultats ?
+            </p>
+            {programId && (
+              <Link to={`/programs/${programId}`}>
+                <Button className="w-full">Adapter la periodisation</Button>
+              </Link>
+            )}
+          </div>
+        )}
+
         <Link to="/">
-          <Button>Retour a l'accueil</Button>
+          <Button variant={deviations.length > 0 ? 'secondary' : 'primary'}>
+            Retour a l'accueil
+          </Button>
         </Link>
       </div>
     )
