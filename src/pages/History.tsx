@@ -46,8 +46,8 @@ export default function HistoryPage() {
     })
   }, [entries, criterion])
 
-  const formatTick = (index: number) => {
-    const point = chartData[index]
+  const formatTick = (index: unknown) => {
+    const point = chartData[Number(index)]
     if (!point) return ''
     return point.occurrence > 1 ? `${point.date} (#${point.occurrence})` : point.date
   }
@@ -149,7 +149,7 @@ export default function HistoryPage() {
                       />
                       <YAxis stroke="#8d9099" tick={{ fontSize: 12, fill: '#8d9099' }} />
                       <Tooltip
-                        labelFormatter={(value: number) => formatTick(value)}
+                        labelFormatter={(label) => formatTick(label)}
                         contentStyle={{
                           backgroundColor: '#1a1c21',
                           border: '1px solid #2b2e35',
