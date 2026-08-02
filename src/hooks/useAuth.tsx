@@ -27,5 +27,10 @@ export function useAuth() {
 
   const signOut = () => supabase.auth.signOut()
 
-  return { session, loading, signUp, signIn, signOut }
+  const updateEmail = (newEmail: string) => supabase.auth.updateUser({ email: newEmail })
+
+  const updatePassword = (newPassword: string) =>
+    supabase.auth.updateUser({ password: newPassword })
+
+  return { session, loading, signUp, signIn, signOut, updateEmail, updatePassword }
 }

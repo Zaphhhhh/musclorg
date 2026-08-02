@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useProfile } from '../hooks/useProfile'
+import { useAuth } from '../hooks/useAuth'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import ChipMultiSelect from '../components/ui/ChipMultiSelect'
@@ -16,6 +17,7 @@ import type { ExperienceLevel } from '../types/profile'
 
 export default function ProfilePage() {
   const { profile, loading, updateProfile } = useProfile()
+  const { session, updateEmail, updatePassword } = useAuth()
 
   const [displayName, setDisplayName] = useState('')
   const [sex, setSex] = useState('')
@@ -196,7 +198,154 @@ export default function ProfilePage() {
             </Button>
           </form>
         )}
+
+        {!loading && (
+          <div className="mt-8 flex flex-col gap-6">
+            <EmailSection currentEmail={session?.user.email ?? ''} updateEmail={updateEmail} />
+            <PasswordSection updatePassword={updatePassword} />
+          </div>
+        )}
       </main>
     </div>
+  )
+}
+
+function EmailSection({
+  currentEmail,
+  updateEmail,
+}: {
+  currentEmail: string
+  updateEmail: (email: string) => Promise<{ error: { message: string } | null }>
+}) {
+  const [newEmail, setNewEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setMessage(null)
+    setError(null)
+
+    const { error } = await updateEmail(newEmail)
+
+    setSubmitting(false)
+    if (error) setError(error.message)
+    else {
+      setMessage(
+        `Verifie ta boite mail (${newEmail}) pour confirmer le changement. Ton email actuel reste actif tant que ce n'est pas confirme.`
+      )
+      setNewEmail('')
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-[var(--surface)] border border-[var(--border)] p-6 flex flex-col gap-4"
+    >
+      <h2 className="text-lg normal-case tracking-normal">Email</h2>
+      <p className="text-sm text-[var(--text-muted)]">Actuel: {currentEmail}</p>
+
+      <Input
+        label="Nouvel email"
+        type="email"
+        value={newEmail}
+        onChange={(e) => setNewEmail(e.target.value)}
+        placeholder="nouveau@email.com"
+        required
+      />
+
+      {error && (
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger)]/10 px-3 py-2">{error}</p>
+      )}
+      {message && (
+        <p className="text-sm text-[var(--success)] bg-[var(--success)]/10 px-3 py-2">{message}</p>
+      )}
+
+      <Button type="submit" variant="secondary" isLoading={submitting} className="self-start">
+        Changer l'email
+      </Button>
+    </form>
+  )
+}
+
+function PasswordSection({
+  updatePassword,
+}: {
+  updatePassword: (password: string) => Promise<{ error: { message: string } | null }>
+}) {
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+    setError(null)
+
+    if (newPassword !== confirmPassword) {
+      setError('Les deux mots de passe ne correspondent pas.')
+      return
+    }
+    if (newPassword.length < 6) {
+      setError('Le mot de passe doit faire au moins 6 caracteres.')
+      return
+    }
+
+    setSubmitting(true)
+    const { error } = await updatePassword(newPassword)
+    setSubmitting(false)
+
+    if (error) setError(error.message)
+    else {
+      setMessage('Mot de passe modifie.')
+      setNewPassword('')
+      setConfirmPassword('')
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-[var(--surface)] border border-[var(--border)] p-6 flex flex-col gap-4"
+    >
+      <h2 className="text-lg normal-case tracking-normal">Mot de passe</h2>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Nouveau mot de passe"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          autoComplete="new-password"
+          minLength={6}
+          required
+        />
+        <Input
+          label="Confirmer"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          autoComplete="new-password"
+          minLength={6}
+          required
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-[var(--danger)] bg-[var(--danger)]/10 px-3 py-2">{error}</p>
+      )}
+      {message && (
+        <p className="text-sm text-[var(--success)] bg-[var(--success)]/10 px-3 py-2">{message}</p>
+      )}
+
+      <Button type="submit" variant="secondary" isLoading={submitting} className="self-start">
+        Changer le mot de passe
+      </Button>
+    </form>
   )
 }
