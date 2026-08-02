@@ -5,6 +5,7 @@ import {
   DragOverlay,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -84,7 +85,11 @@ export default function ProgramDetailPage() {
   )
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    // Capteur dedie au tactile: se declenche apres un appui maintenu
+    // plutot qu'un deplacement, pour ne pas se faire voler le geste par
+    // le scroll de la page (c'est ca qui empechait le drag sur mobile).
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } })
   )
 
   const handleAddPhase = async () => {
