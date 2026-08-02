@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
+import Select from '../ui/Select'
 import ChipMultiSelect from '../ui/ChipMultiSelect'
 import { MUSCLE_GROUPS } from '../../types/exercise'
 import type { Exercise, ExerciseInput } from '../../types/exercise'
@@ -13,7 +14,12 @@ interface ExerciseFormProps {
 
 export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFormProps) {
   const [name, setName] = useState(initial?.name ?? '')
-  const [muscleGroups, setMuscleGroups] = useState<string[]>(initial?.muscle_group ?? [])
+  const [primaryMuscle, setPrimaryMuscle] = useState<string>(
+    initial?.primary_muscle_group ?? ''
+  )
+  const [secondaryMuscles, setSecondaryMuscles] = useState<string[]>(
+    initial?.secondary_muscle_groups ?? []
+  )
   const [warmupEnabled, setWarmupEnabled] = useState(initial?.warmup_enabled ?? false)
   const [currentPr, setCurrentPr] = useState(initial?.pr_weight ?? '')
   const [prReps, setPrReps] = useState(initial?.pr_reps ?? '')
@@ -34,7 +40,8 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
 
     const { error } = await onSubmit({
       name,
-      muscle_group: muscleGroups as Exercise['muscle_group'],
+      primary_muscle_group: (primaryMuscle || null) as Exercise['primary_muscle_group'],
+      secondary_muscle_groups: secondaryMuscles as Exercise['secondary_muscle_groups'],
       default_sets: showDefaults && sets !== '' ? Number(sets) : null,
       default_reps: showDefaults && reps !== '' ? Number(reps) : null,
       default_weight: showDefaults && weight !== '' ? Number(weight) : null,
@@ -69,12 +76,23 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
         required
       />
 
-      <ChipMultiSelect
-        label="Groupes musculaires"
-        options={MUSCLE_GROUPS}
-        value={muscleGroups}
-        onChange={setMuscleGroups}
+      <Select
+        label="Groupe musculaire principal"
+        options={['', ...MUSCLE_GROUPS]}
+        value={primaryMuscle}
+        onChange={(e) => setPrimaryMuscle(e.target.value)}
       />
+
+      <ChipMultiSelect
+        label="Groupes musculaires secondaires"
+        options={MUSCLE_GROUPS.filter((g) => g !== primaryMuscle)}
+        value={secondaryMuscles}
+        onChange={setSecondaryMuscles}
+      />
+      <p className="text-xs text-[var(--text-muted)] -mt-2">
+        Le principal compte pour 1 serie dans le volume hebdo du dashboard, chaque secondaire
+        pour 0.5.
+      </p>
 
       <div className="grid grid-cols-2 gap-4">
         <Input

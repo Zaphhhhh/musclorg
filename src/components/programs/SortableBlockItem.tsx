@@ -10,7 +10,7 @@ import { computeSets, resolveBaseWeight } from '../../lib/computeSets'
 import { SET_STRATEGIES, SET_STRATEGY_LABELS } from '../../types/setStrategy'
 import type { SetStrategyType } from '../../types/setStrategy'
 import type { SessionBlock } from '../../types/program'
-import type { SetOverride } from '../../types/program'
+import type { SetOverride, SetIntensity } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 
 interface CopyOption {
@@ -223,6 +223,22 @@ export default function SortableBlockItem({
                 while (next.length <= index) next.push(null)
                 next[index] = override
                 onUpdate({ set_overrides: next })
+              }}
+              repsOverrides={block.set_reps_overrides ?? []}
+              onRepsOverride={(index, reps) => {
+                const current = block.set_reps_overrides ?? []
+                const next = [...current]
+                while (next.length <= index) next.push(null)
+                next[index] = reps
+                onUpdate({ set_reps_overrides: next })
+              }}
+              intensities={block.set_intensity ?? []}
+              onIntensity={(index, intensity: SetIntensity | null) => {
+                const current = block.set_intensity ?? []
+                const next = [...current]
+                while (next.length <= index) next.push(null)
+                next[index] = intensity
+                onUpdate({ set_intensity: next })
               }}
             />
           </div>

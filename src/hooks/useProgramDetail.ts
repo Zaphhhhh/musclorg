@@ -346,6 +346,8 @@ export function useProgramDetail(programId: string | undefined) {
           weight_mode: block.weight_mode,
           weight_pct: block.weight_pct,
           set_overrides: block.set_overrides,
+          set_reps_overrides: block.set_reps_overrides,
+          set_intensity: block.set_intensity,
           rest_seconds: block.rest_seconds,
           set_strategy: block.set_strategy,
           set_strategy_config: block.set_strategy_config,
@@ -380,6 +382,8 @@ export function useProgramDetail(programId: string | undefined) {
         weight_mode: sourceBlock.weight_mode,
         weight_pct: sourceBlock.weight_pct,
         set_overrides: sourceBlock.set_overrides,
+        set_reps_overrides: sourceBlock.set_reps_overrides,
+        set_intensity: sourceBlock.set_intensity,
         rest_seconds: sourceBlock.rest_seconds,
         set_strategy: sourceBlock.set_strategy,
         set_strategy_config: sourceBlock.set_strategy_config,
@@ -391,6 +395,70 @@ export function useProgramDetail(programId: string | undefined) {
       return { error: null }
     },
     [findBlock, findSession, fetchProgram]
+  )
+
+  // Copie une semaine entiere (avec toutes ses seances/blocs) vers une
+  // phase cible du meme programme (peut etre la meme phase, pour une
+  // simple duplication "semaine suivante identique").
+  const copyWeekToPhase = useCallback(
+    async (weekId: string, targetPhaseId: string) => {
+      const sourceWeek = program?.phases.flatMap((p) => p.weeks).find((w) => w.id === weekId)
+      if (!sourceWeek) return { error: 'Semaine source introuvable' }
+
+      const targetPhase = program?.phases.find((p) => p.id === targetPhaseId)
+      const weekNumber = (targetPhase?.weeks.length ?? 0) + 1
+
+      const { data: newWeek, error: weekError } = await supabase
+        .from('weeks')
+        .insert({
+          phase_id: targetPhaseId,
+          week_number: weekNumber,
+          is_deload: sourceWeek.is_deload,
+        })
+        .select()
+        .single()
+
+      if (weekError || !newWeek) return { error: weekError?.message ?? 'Erreur' }
+
+      for (const session of sourceWeek.sessions) {
+        const { data: newSession, error: sessionError } = await supabase
+          .from('sessions')
+          .insert({
+            week_id: newWeek.id,
+            name: session.name,
+            day_of_week: session.day_of_week,
+            order_index: session.order_index,
+          })
+          .select()
+          .single()
+        if (sessionError || !newSession) continue
+
+        if (session.session_blocks.length > 0) {
+          const blockCopies = session.session_blocks.map((block) => ({
+            session_id: newSession.id,
+            exercise_id: block.exercise_id,
+            order_index: block.order_index,
+            sets: block.sets,
+            reps: block.reps,
+            weight: block.weight,
+            weight_mode: block.weight_mode,
+            weight_pct: block.weight_pct,
+            set_overrides: block.set_overrides,
+            set_reps_overrides: block.set_reps_overrides,
+            set_intensity: block.set_intensity,
+            rest_seconds: block.rest_seconds,
+            set_strategy: block.set_strategy,
+            set_strategy_config: block.set_strategy_config,
+            is_accessory: block.is_accessory,
+          }))
+          await supabase.from('session_blocks').insert(blockCopies)
+        }
+      }
+
+      await fetchProgram()
+      return { error: null }
+    },
+    [program, fetchProgram]
   )
 
   // Copie un mesocycle (phase) entier, avec toutes ses semaines/seances/
@@ -456,6 +524,8 @@ export function useProgramDetail(programId: string | undefined) {
               weight_mode: block.weight_mode,
               weight_pct: block.weight_pct,
               set_overrides: block.set_overrides,
+              set_reps_overrides: block.set_reps_overrides,
+              set_intensity: block.set_intensity,
               rest_seconds: block.rest_seconds,
               set_strategy: block.set_strategy,
               set_strategy_config: block.set_strategy_config,
@@ -491,5 +561,6 @@ export function useProgramDetail(programId: string | undefined) {
     copySessionToWeek,
     copyBlockToSession,
     copyPhaseToProgram,
+    copyWeekToPhase,
   }
 }

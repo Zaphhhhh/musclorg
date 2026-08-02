@@ -43,6 +43,7 @@ export default function ProgramDetailPage() {
     copySessionToWeek,
     copyBlockToSession,
     copyPhaseToProgram,
+    copyWeekToPhase,
   } = useProgramDetail(id)
   const { exercises, loading: exercisesLoading } = useExercises()
   const { programs } = usePrograms()
@@ -82,6 +83,15 @@ export default function ProgramDetailPage() {
   const allProgramOptions = useMemo(
     () => programs.map((p) => ({ id: p.id, label: p.name })),
     [programs]
+  )
+
+  const allPhaseOptions = useMemo(
+    () =>
+      program?.phases.map((phase, phaseIndex) => ({
+        id: phase.id,
+        label: `M${phaseIndex + 1} · ${phase.name}`,
+      })) ?? [],
+    [program]
   )
 
   const sensors = useSensors(
@@ -216,6 +226,8 @@ export default function ProgramDetailPage() {
                 onCopyBlockToSession={copyBlockToSession}
                 allProgramOptions={allProgramOptions}
                 onCopyPhaseToProgram={copyPhaseToProgram}
+                allPhaseOptions={allPhaseOptions}
+                onCopyWeekToPhase={copyWeekToPhase}
               />
             ))}
 

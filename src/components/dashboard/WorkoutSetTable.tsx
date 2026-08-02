@@ -42,6 +42,11 @@ export default function WorkoutSetTable({ sets, getLog, onUpdateLog }: WorkoutSe
                   (+{set.restSeconds}s)
                 </span>
               )}
+              {set.intensity && (
+                <span className="text-xs text-[var(--pr)] ml-1 font-mono-num">
+                  {set.intensity.type.toUpperCase()} {set.intensity.value}
+                </span>
+              )}
             </span>
             <span className="font-mono-num text-sm text-right w-14 text-[var(--text-muted)]">
               {set.reps}

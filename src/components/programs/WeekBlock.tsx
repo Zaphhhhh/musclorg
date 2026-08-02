@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import SessionCard from './SessionCard'
+import CopyPicker from './CopyPicker'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Select from '../ui/Select'
-import { TrashIcon } from '../ui/icons'
+import { CopyIcon, TrashIcon } from '../ui/icons'
 import { DAYS_OF_WEEK } from '../../types/program'
 import type { WeekWithSessions, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
@@ -27,6 +28,8 @@ interface WeekBlockProps {
   allSessionOptions: CopyOption[]
   onCopySessionToWeek: (sessionId: string, targetWeekId: string) => void
   onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
+  allPhaseOptions: CopyOption[]
+  onCopyWeekToPhase: (weekId: string, targetPhaseId: string) => void
 }
 
 export default function WeekBlock({
@@ -42,10 +45,13 @@ export default function WeekBlock({
   allSessionOptions,
   onCopySessionToWeek,
   onCopyBlockToSession,
+  allPhaseOptions,
+  onCopyWeekToPhase,
 }: WeekBlockProps) {
   const [addingSession, setAddingSession] = useState(false)
   const [sessionName, setSessionName] = useState('')
   const [day, setDay] = useState<string>(DAYS_OF_WEEK[0])
+  const [copying, setCopying] = useState(false)
 
   const handleAdd = () => {
     if (!sessionName.trim()) return
@@ -64,14 +70,36 @@ export default function WeekBlock({
           </span>
         )}
         <button
+          onClick={() => setCopying((c) => !c)}
+          className="text-[var(--text-muted)] hover:text-[var(--accent)] ml-auto"
+          aria-label="Copier la semaine"
+          title="Copier la semaine"
+        >
+          <CopyIcon className="w-3.5 h-3.5" />
+        </button>
+        <button
           onClick={onDeleteWeek}
-          className="text-[var(--text-muted)] hover:text-[var(--danger)] ml-auto"
+          className="text-[var(--text-muted)] hover:text-[var(--danger)]"
           aria-label="Supprimer la semaine"
           title="Supprimer la semaine"
         >
           <TrashIcon className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {copying && (
+        <div className="mb-3 max-w-xs">
+          <CopyPicker
+            label="Copier cette semaine vers le mesocycle..."
+            options={allPhaseOptions}
+            onConfirm={(targetPhaseId) => {
+              onCopyWeekToPhase(week.id, targetPhaseId)
+              setCopying(false)
+            }}
+            onCancel={() => setCopying(false)}
+          />
+        </div>
+      )}
 
       <div className="flex gap-3 overflow-x-auto pb-2">
         {week.sessions.map((session) => (

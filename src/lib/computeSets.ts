@@ -1,4 +1,4 @@
-import type { SessionBlock } from '../types/program'
+import type { SessionBlock, SetIntensity } from '../types/program'
 import type {
   BackOffConfig,
   ClusterConfig,
@@ -14,6 +14,8 @@ export interface ComputedSet {
   weight: number | null // null = pas de charge chiffrable (ex: PR non defini)
   restSeconds?: number
   overridden?: boolean
+  repsOverridden?: boolean
+  intensity?: SetIntensity | null
 }
 
 // Resout le poids de base d'un bloc: soit la valeur fixe, soit
@@ -40,19 +42,34 @@ export function computeSets(
 ): ComputedSet[] {
   const rawSets = computeBaseSets(block, baseWeight)
   const overrides = block.set_overrides ?? []
+  const repsOverrides = block.set_reps_overrides ?? []
+  const intensities = block.set_intensity ?? []
 
   return rawSets.map((set, i) => {
+    let result = set
+
     const override = overrides[i]
-    if (!override) return set
+    if (override) {
+      const weight =
+        override.mode === 'fixed'
+          ? override.value
+          : exercisePr != null
+            ? Math.round(exercisePr * (override.value / 100) * 10) / 10
+            : null
+      result = { ...result, weight, overridden: true }
+    }
 
-    const weight =
-      override.mode === 'fixed'
-        ? override.value
-        : exercisePr != null
-          ? Math.round(exercisePr * (override.value / 100) * 10) / 10
-          : null
+    const repsOverride = repsOverrides[i]
+    if (repsOverride != null) {
+      result = { ...result, reps: repsOverride, repsOverridden: true }
+    }
 
-    return { ...set, weight, overridden: true }
+    const intensity = intensities[i]
+    if (intensity) {
+      result = { ...result, intensity }
+    }
+
+    return result
   })
 }
 

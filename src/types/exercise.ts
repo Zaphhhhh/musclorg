@@ -34,7 +34,8 @@ export interface Exercise {
   id: string
   user_id: string
   name: string
-  muscle_group: MuscleGroup[]
+  primary_muscle_group: MuscleGroup | null
+  secondary_muscle_groups: MuscleGroup[]
   default_sets: number | null
   default_reps: number | null
   default_weight: number | null

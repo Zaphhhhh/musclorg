@@ -62,7 +62,17 @@ export function useExercises() {
   const deleteExercise = useCallback(async (id: string) => {
     const { error } = await supabase.from('exercises').delete().eq('id', id)
 
-    if (error) return { error: error.message }
+    if (error) {
+      // 23503 = violation de cle etrangere: l'exo est utilise dans au
+      // moins un bloc de seance. Message clair plutot que l'erreur SQL brute.
+      if (error.code === '23503') {
+        return {
+          error:
+            "Cet exercice est utilise dans au moins une seance d'un programme. Retire-le de tes seances avant de pouvoir le supprimer.",
+        }
+      }
+      return { error: error.message }
+    }
 
     setExercises((prev) => prev.filter((ex) => ex.id !== id))
     return { error: null }

@@ -65,6 +65,11 @@ export interface SetOverride {
   value: number
 }
 
+export interface SetIntensity {
+  type: 'rir' | 'rpe'
+  value: number // 1 a 10
+}
+
 export interface SessionBlock {
   id: string
   session_id: string
@@ -79,6 +84,10 @@ export interface SessionBlock {
   // computeSets(). Peut etre un poids fixe ou un % de PR, au choix de
   // chaque serie individuellement. null/absent = utilise le calcul auto.
   set_overrides: (SetOverride | null)[] | null
+  // Surcharge du nombre de reps par serie individuelle, meme indexation.
+  set_reps_overrides: (number | null)[] | null
+  // RIR ou RPE cible par serie individuelle, meme indexation.
+  set_intensity: (SetIntensity | null)[] | null
   rest_seconds: number | null
   set_strategy: SetStrategyType
   set_strategy_config: SetStrategyConfig | null

@@ -31,6 +31,8 @@ interface PhaseSectionProps {
   onCopyBlockToSession: (blockId: string, targetSessionId: string) => void
   allProgramOptions: CopyOption[]
   onCopyPhaseToProgram: (phaseId: string, targetProgramId: string) => void
+  allPhaseOptions: CopyOption[]
+  onCopyWeekToPhase: (weekId: string, targetPhaseId: string) => void
 }
 
 export default function PhaseSection({
@@ -51,6 +53,8 @@ export default function PhaseSection({
   onCopyBlockToSession,
   allProgramOptions,
   onCopyPhaseToProgram,
+  allPhaseOptions,
+  onCopyWeekToPhase,
 }: PhaseSectionProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [copying, setCopying] = useState(false)
@@ -132,6 +136,8 @@ export default function PhaseSection({
                 allSessionOptions={allSessionOptions}
                 onCopySessionToWeek={onCopySessionToWeek}
                 onCopyBlockToSession={onCopyBlockToSession}
+                allPhaseOptions={allPhaseOptions}
+                onCopyWeekToPhase={onCopyWeekToPhase}
               />
             ))
           )}

@@ -8,7 +8,9 @@ import { useLastPerformedSession } from '../hooks/useLastPerformedSession'
 import { useProfile } from '../hooks/useProfile'
 import Button from '../components/ui/Button'
 import Select from '../components/ui/Select'
+import Logo from '../components/ui/Logo'
 import WeekOverview from '../components/dashboard/WeekOverview'
+import MuscleVolumeCard from '../components/dashboard/MuscleVolumeCard'
 import { PixelUserIcon } from '../components/ui/icons'
 import { PERIODIZATION_LABELS } from '../types/program'
 
@@ -81,7 +83,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl">MusclOrg</h1>
+          <Logo />
           <div className="flex items-center gap-3">
             <Link to="/profile">
               <Button
@@ -206,6 +208,10 @@ export default function HomePage() {
               sessions={weekSessions}
               exercisesById={exercisesById}
             />
+
+            <div className="mt-6">
+              <MuscleVolumeCard sessions={weekSessions} exercisesById={exercisesById} />
+            </div>
           </>
         )}
       </main>

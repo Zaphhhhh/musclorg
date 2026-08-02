@@ -4,6 +4,7 @@ import { usePrograms } from '../hooks/usePrograms'
 import ProgramCard from '../components/programs/ProgramCard'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import Logo from '../components/ui/Logo'
 
 export default function ProgramsPage() {
   const { programs, loading, error, createProgram, updateProgram, deleteProgram } = usePrograms()
@@ -11,6 +12,7 @@ export default function ProgramsPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,16 +29,16 @@ export default function ProgramsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer ce programme et tout son contenu ?')) return
-    await deleteProgram(id)
+    setDeleteError(null)
+    const { error } = await deleteProgram(id)
+    if (error) setDeleteError(error)
   }
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <header className="border-b border-[var(--border)]">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="text-xl no-underline text-[var(--text)]">
-            MusclOrg
-          </Link>
+          <Logo />
           <Link to="/">
             <Button variant="secondary" className="p-2" aria-label="Retour" title="Retour">
               ◂
@@ -89,9 +91,9 @@ export default function ProgramsPage() {
           </form>
         )}
 
-        {error && (
+        {(error || deleteError) && (
           <p className="text-sm text-[var(--danger)] bg-[var(--danger)]/10 rounded-md px-3 py-2 mb-6">
-            {error}
+            {error || deleteError}
           </p>
         )}
 

@@ -19,12 +19,15 @@ export default function ExerciseCard({ exercise, onEdit, onDelete }: ExerciseCar
           <h3 className="text-base normal-case tracking-normal font-semibold">
             {exercise.name}
           </h3>
-          {exercise.muscle_group.length > 0 && (
+          {exercise.primary_muscle_group && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {exercise.muscle_group.map((group) => (
+              <span className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 rounded-full px-2 py-0.5">
+                {exercise.primary_muscle_group}
+              </span>
+              {exercise.secondary_muscle_groups.map((group) => (
                 <span
                   key={group}
-                  className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 rounded-full px-2 py-0.5"
+                  className="text-xs text-[var(--text-muted)] bg-[var(--surface-2)] rounded-full px-2 py-0.5"
                 >
                   {group}
                 </span>
