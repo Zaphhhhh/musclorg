@@ -12,7 +12,7 @@ function DraggableExercise({ exercise }: { exercise: Exercise }) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={`cursor-grab active:cursor-grabbing bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm select-none ${
+      className={`touch-none cursor-grab active:cursor-grabbing bg-[var(--surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm select-none ${
         isDragging ? 'opacity-40' : ''
       }`}
     >

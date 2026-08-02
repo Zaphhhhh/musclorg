@@ -177,7 +177,7 @@ export default function ProgramDetailPage() {
         onDragEnd={handleDragEnd}
       >
         <main className="max-w-[1800px] mx-auto px-4 sm:px-6 py-8 flex flex-col lg:flex-row gap-4 items-stretch lg:items-start">
-          <div className="flex lg:contents gap-2">
+          <div className="flex flex-col lg:contents gap-2">
             <button
               onClick={() => setLibraryVisible((v) => !v)}
               className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] border border-[var(--border)] px-2 py-1.5 shrink-0 self-start"

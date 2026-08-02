@@ -71,7 +71,7 @@ export default function SortableBlockItem({
           <button
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing text-[var(--text-muted)] shrink-0"
+            className="touch-none cursor-grab active:cursor-grabbing text-[var(--text-muted)] shrink-0"
             aria-label="Reordonner"
           >
             ⠿
