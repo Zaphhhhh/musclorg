@@ -31,7 +31,7 @@ export function useExercises() {
       data: { user },
     } = await supabase.auth.getUser()
 
-    if (!user) return { error: 'Utilisateur non connecte' }
+    if (!user) return { error: 'Utilisateur non connecte', data: null }
 
     const { data, error } = await supabase
       .from('exercises')
@@ -39,10 +39,10 @@ export function useExercises() {
       .select()
       .single()
 
-    if (error) return { error: error.message }
+    if (error) return { error: error.message, data: null }
 
     setExercises((prev) => [data as Exercise, ...prev])
-    return { error: null }
+    return { error: null, data: data as Exercise }
   }, [])
 
   const updateExercise = useCallback(async (id: string, input: Partial<ExerciseInput>) => {

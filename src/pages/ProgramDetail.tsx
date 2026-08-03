@@ -22,6 +22,7 @@ import Select from '../components/ui/Select'
 import { PERIODIZATION_TYPES, PERIODIZATION_LABELS } from '../types/program'
 import type { PeriodizationType } from '../types/program'
 import type { Exercise } from '../types/exercise'
+import type { CommonExercise } from '../lib/commonExercises'
 
 export default function ProgramDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -45,13 +46,13 @@ export default function ProgramDetailPage() {
     copyPhaseToProgram,
     copyWeekToPhase,
   } = useProgramDetail(id)
-  const { exercises, loading: exercisesLoading } = useExercises()
+  const { exercises, loading: exercisesLoading, createExercise } = useExercises()
   const { programs } = usePrograms()
 
   const [addingPhase, setAddingPhase] = useState(false)
   const [phaseName, setPhaseName] = useState('')
   const [phaseType, setPhaseType] = useState<PeriodizationType>('lineaire')
-  const [activeExercise, setActiveExercise] = useState<Exercise | null>(null)
+  const [activeExercise, setActiveExercise] = useState<Exercise | CommonExercise | null>(null)
   const [libraryVisible, setLibraryVisible] = useState(true)
 
   const exercisesById = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
@@ -112,9 +113,37 @@ export default function ProgramDetailPage() {
   const handleDragStart = (event: DragStartEvent) => {
     const data = event.active.data.current
     if (data?.type === 'exercise') setActiveExercise(data.exercise as Exercise)
+    else if (data?.type === 'common-exercise') setActiveExercise(data.exercise as CommonExercise)
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Un exo "courant" n'existe pas encore dans la bibliotheque de
+  // l'utilisateur: on le materialise (reutilise s'il existe deja par
+  // nom, sinon le cree) avant de creer le bloc.
+  const materializeCommonExercise = async (preset: CommonExercise): Promise<Exercise | null> => {
+    const existing = exercises.find(
+      (e) => e.name.trim().toLowerCase() === preset.name.trim().toLowerCase()
+    )
+    if (existing) return existing
+
+    const { data, error } = await createExercise({
+      name: preset.name,
+      primary_muscle_group: preset.primary_muscle_group,
+      secondary_muscle_groups: [],
+      default_sets: null,
+      default_reps: null,
+      default_weight: null,
+      default_rest_seconds: null,
+      warmup_enabled: false,
+      warmup_config: null,
+      pr_weight: null,
+      pr_reps: null,
+    })
+
+    if (error || !data) return null
+    return data
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveExercise(null)
     if (!over) return
@@ -122,11 +151,19 @@ export default function ProgramDetailPage() {
     const activeData = active.data.current
     const overData = over.data.current
 
-    // Cas 1: on depose un exo de la bibliotheque sur une seance -> nouveau bloc
-    if (activeData?.type === 'exercise') {
+    // Cas 1: on depose un exo (bibliotheque ou catalogue courant) sur
+    // une seance -> nouveau bloc
+    if (activeData?.type === 'exercise' || activeData?.type === 'common-exercise') {
       const sessionId =
         overData?.type === 'session' ? (overData.sessionId as string) : findSessionOfBlock(over.id as string)
-      if (sessionId) addBlockFromExercise(sessionId, activeData.exercise as Exercise)
+      if (!sessionId) return
+
+      if (activeData.type === 'exercise') {
+        addBlockFromExercise(sessionId, activeData.exercise as Exercise)
+      } else {
+        const exercise = await materializeCommonExercise(activeData.exercise as CommonExercise)
+        if (exercise) addBlockFromExercise(sessionId, exercise)
+      }
       return
     }
 
