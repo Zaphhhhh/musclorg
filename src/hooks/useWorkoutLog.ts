@@ -92,7 +92,7 @@ export function useWorkoutLog(sessionId: string | undefined, performedOn: string
     (
       sessionBlockId: string,
       setIndex: number,
-      patch: Partial<Pick<SetLog, 'actual_reps' | 'actual_weight' | 'completed'>>
+      patch: Partial<Pick<SetLog, 'actual_reps' | 'actual_weight' | 'completed' | 'comment'>>
     ) => {
       const key = `${sessionBlockId}:${setIndex}`
 
@@ -112,6 +112,7 @@ export function useWorkoutLog(sessionId: string | undefined, performedOn: string
               actual_reps: null,
               actual_weight: null,
               completed: false,
+              comment: null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               ...patch,
@@ -149,5 +150,27 @@ export function useWorkoutLog(sessionId: string | undefined, performedOn: string
     [ensureWorkoutLog, workoutLogId]
   )
 
-  return { loading, getLog, updateSetLog }
+  const saveFeedback = useCallback(
+    async (feedback: {
+      intensity_rating: number
+      duration_rating: number
+      relevance_rating: number
+    }) => {
+      const logId = await ensureWorkoutLog()
+      if (!logId) return { error: 'Impossible de creer le journal de seance' }
+
+      const { error } = await supabase.from('workout_logs').update(feedback).eq('id', logId)
+      if (error) return { error: error.message }
+      return { error: null }
+    },
+    [ensureWorkoutLog]
+  )
+
+  return { loading, getLog, updateSetLog, ensureWorkoutLog, saveFeedback }
+}
+
+export interface SessionFeedback {
+  intensity_rating: number
+  duration_rating: number
+  relevance_rating: number
 }

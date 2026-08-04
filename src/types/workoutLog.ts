@@ -15,6 +15,7 @@ export interface SetLog {
   actual_reps: number | null
   actual_weight: number | null
   completed: boolean
+  comment: string | null
   created_at: string
   updated_at: string
 }

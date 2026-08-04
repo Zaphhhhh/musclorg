@@ -47,12 +47,62 @@ function formatTime(totalSeconds: number) {
   return `${totalSeconds < 0 ? '-' : ''}${m}:${String(s).padStart(2, '0')}`
 }
 
+function RatingPicker({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string
+  hint: string
+  value: number | null
+  onChange: (v: number) => void
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <p className="text-sm">{label}</p>
+        <p className="text-xs text-[var(--text-muted)]">{hint}</p>
+      </div>
+      <div className="flex gap-1 flex-wrap">
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(n)}
+            className={`w-7 h-7 text-xs font-mono-num border-2 ${
+              value === n
+                ? 'bg-[var(--pr)] border-[var(--pr)] text-[var(--bg)]'
+                : 'bg-[var(--surface-2)] border-[var(--border)] text-[var(--text-muted)]'
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SessionClock({ seconds }: { seconds: number }) {
+  return (
+    <div className="fixed top-3 right-3 z-10 bg-[var(--surface)] border-2 border-[var(--border)] px-2 py-1 font-mono-num text-sm text-[var(--text-muted)]">
+      {formatTime(seconds)}
+    </div>
+  )
+}
+
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const { session, programId, loading, error } = useSessionDetail(sessionId)
-  const { updateSetLog } = useWorkoutLog(sessionId)
+  const { updateSetLog, saveFeedback } = useWorkoutLog(sessionId)
 
   const [deviations, setDeviations] = useState<Deviation[]>([])
+  const [intensityRating, setIntensityRating] = useState<number | null>(null)
+  const [durationRating, setDurationRating] = useState<number | null>(null)
+  const [relevanceRating, setRelevanceRating] = useState<number | null>(null)
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
 
   const [phase, setPhase] = useState<'loading' | 'config' | 'set' | 'rest' | 'done'>('loading')
   const [defaultRestSeconds, setDefaultRestSeconds] = useState(90)
@@ -93,8 +143,9 @@ export default function TrainPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [actualReps, setActualReps] = useState<string>('')
   const [actualWeight, setActualWeight] = useState<string>('')
-  const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
-  const [, setTick] = useState(0)
+  const [restElapsed, setRestElapsed] = useState(0)
+  const [restPaused, setRestPaused] = useState(false)
+  const [sessionElapsed, setSessionElapsed] = useState(0)
 
   const current = flatSets[currentIndex]
   const next = flatSets[currentIndex + 1]
@@ -106,10 +157,20 @@ export default function TrainPage() {
     setActualWeight(current.weight != null ? String(current.weight) : '')
   }, [current])
 
-  // Chrono de repos: tick chaque seconde pendant la phase 'rest'
+  // Chrono de repos: tick chaque seconde pendant la phase 'rest', sauf
+  // si en pause (l'effet ne se relance simplement pas dans ce cas).
   useEffect(() => {
-    if (phase !== 'rest') return
-    const interval = setInterval(() => setTick((t) => t + 1), 1000)
+    if (phase !== 'rest' || restPaused) return
+    const interval = setInterval(() => setRestElapsed((e) => e + 1), 1000)
+    return () => clearInterval(interval)
+  }, [phase, restPaused])
+
+  // Chrono global de la seance: tourne en continu pendant les series et
+  // les repos (independant de la pause du chrono de repos), s'arrete a
+  // la fin. Ne demarre pas pendant l'ecran de config.
+  useEffect(() => {
+    if (phase !== 'set' && phase !== 'rest') return
+    const interval = setInterval(() => setSessionElapsed((e) => e + 1), 1000)
     return () => clearInterval(interval)
   }, [phase])
 
@@ -175,14 +236,36 @@ export default function TrainPage() {
       return
     }
 
-    setRestStartedAt(Date.now())
+    setRestElapsed(0)
+    setRestPaused(false)
     setPhase('rest')
   }
 
   const goToNextSet = () => {
     setCurrentIndex((i) => i + 1)
     setPhase('set')
-    setRestStartedAt(null)
+    setRestElapsed(0)
+    setRestPaused(false)
+  }
+
+  const goToPreviousSet = () => {
+    if (currentIndex === 0) return
+    setCurrentIndex((i) => i - 1)
+    setPhase('set')
+    setRestElapsed(0)
+    setRestPaused(false)
+  }
+
+  const submitFeedback = async () => {
+    if (intensityRating == null || durationRating == null || relevanceRating == null) return
+    setFeedbackSubmitting(true)
+    await saveFeedback({
+      intensity_rating: intensityRating,
+      duration_rating: durationRating,
+      relevance_rating: relevanceRating,
+    })
+    setFeedbackSubmitting(false)
+    setFeedbackSubmitted(true)
   }
 
   // --- Ecran config du temps de repos par defaut ---
@@ -235,7 +318,9 @@ export default function TrainPage() {
     return (
       <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-6 px-6 py-10 text-center">
         <h1 className="text-2xl">Seance terminee !</h1>
-        <p className="text-[var(--text-muted)]">Bien joue, {session.name} est dans la poche.</p>
+        <p className="text-[var(--text-muted)]">
+          Bien joue, {session.name} est dans la poche en {formatTime(sessionElapsed)}.
+        </p>
 
         {deviations.length > 0 && (
           <div className="bg-[var(--surface)] border-2 border-[var(--border)] p-4 max-w-md text-left flex flex-col gap-3">
@@ -264,6 +349,51 @@ export default function TrainPage() {
           </div>
         )}
 
+        {feedbackSubmitted ? (
+          <p className="text-sm text-[var(--success)]">Merci pour ton retour !</p>
+        ) : (
+          <div className="bg-[var(--surface)] border-2 border-[var(--border)] p-4 max-w-md text-left flex flex-col gap-4">
+            <p className="text-sm text-[var(--pr)] uppercase tracking-wide">
+              Comment s'est passee la seance ?
+            </p>
+            <RatingPicker
+              label="Intensite"
+              hint="1 = trop facile, 10 = trop dur"
+              value={intensityRating}
+              onChange={setIntensityRating}
+            />
+            <RatingPicker
+              label="Duree"
+              hint="1 = trop courte, 10 = trop longue"
+              value={durationRating}
+              onChange={setDurationRating}
+            />
+            <RatingPicker
+              label="Pertinence des exos"
+              hint="1 = pas adaptes, 10 = parfaitement adaptes"
+              value={relevanceRating}
+              onChange={setRelevanceRating}
+            />
+            <div className="flex gap-3 items-center">
+              <Button
+                onClick={submitFeedback}
+                isLoading={feedbackSubmitting}
+                disabled={
+                  intensityRating == null || durationRating == null || relevanceRating == null
+                }
+              >
+                Envoyer
+              </Button>
+              <button
+                onClick={() => setFeedbackSubmitted(true)}
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
+              >
+                Passer
+              </button>
+            </div>
+          </div>
+        )}
+
         <Link to="/">
           <Button variant={deviations.length > 0 ? 'secondary' : 'primary'}>
             Retour a l'accueil
@@ -275,20 +405,28 @@ export default function TrainPage() {
 
   // --- Ecran repos ---
   if (phase === 'rest' && current) {
-    const elapsed = restStartedAt ? Math.floor((Date.now() - restStartedAt) / 1000) : 0
-    const remaining = current.restSeconds - elapsed
+    const remaining = current.restSeconds - restElapsed
     const overtime = remaining < 0
 
     return (
       <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-8 px-6">
-        <p className="text-[var(--text-muted)] uppercase tracking-wide text-sm">Repos</p>
+        <SessionClock seconds={sessionElapsed} />
+        <p className="text-[var(--text-muted)] uppercase tracking-wide text-sm">
+          Repos {restPaused && '(pause)'}
+        </p>
         <p
           className="font-mono-num text-6xl"
-          style={{ color: overtime ? 'var(--danger)' : 'var(--text)' }}
+          style={{ color: overtime ? 'var(--danger)' : 'var(--text)', opacity: restPaused ? 0.5 : 1 }}
         >
           {formatTime(remaining)}
         </p>
-        {overtime && <p className="text-[var(--danger)] text-sm">Temps de repos depasse</p>}
+        {overtime && !restPaused && (
+          <p className="text-[var(--danger)] text-sm">Temps de repos depasse</p>
+        )}
+
+        <Button variant="secondary" onClick={() => setRestPaused((p) => !p)} className="text-sm">
+          {restPaused ? '▸ Reprendre' : '‖ Pause'}
+        </Button>
 
         {next && (
           <p className="text-[var(--text-muted)] text-sm text-center">
@@ -298,6 +436,11 @@ export default function TrainPage() {
         )}
 
         <Button onClick={goToNextSet}>Serie suivante</Button>
+        {currentIndex > 0 && (
+          <Button variant="secondary" onClick={goToPreviousSet} className="text-sm">
+            ◂ Serie precedente
+          </Button>
+        )}
         <Link to="/">
           <Button variant="ghost" className="text-xs">
             ◂ Quitter le mode entrainement
@@ -322,6 +465,7 @@ export default function TrainPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
+      <SessionClock seconds={sessionElapsed} />
       <header className="border-b border-[var(--border)]">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/">
@@ -378,6 +522,15 @@ export default function TrainPage() {
         <Button onClick={validateSet} className="text-base px-8 py-4">
           Valider la serie
         </Button>
+
+        {currentIndex > 0 && (
+          <button
+            onClick={goToPreviousSet}
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
+          >
+            ◂ Serie precedente
+          </button>
+        )}
       </main>
     </div>
   )
