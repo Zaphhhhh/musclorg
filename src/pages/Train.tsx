@@ -95,7 +95,7 @@ function SessionClock({ seconds }: { seconds: number }) {
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const { session, programId, loading, error } = useSessionDetail(sessionId)
-  const { updateSetLog, saveFeedback, getLog } = useWorkoutLog(sessionId)
+  const { updateSetLog, saveFeedback, getLog, loading: workoutLogLoading } = useWorkoutLog(sessionId)
 
   const [deviations, setDeviations] = useState<Deviation[]>([])
   const [intensityRating, setIntensityRating] = useState<number | null>(null)
@@ -114,12 +114,6 @@ export default function TrainPage() {
     () => session?.session_blocks.some((b) => b.rest_seconds == null) ?? false,
     [session]
   )
-
-  useEffect(() => {
-    if (!session) return
-    setPhase(needsRestConfig ? 'config' : 'set')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session])
 
   const flatSets: FlatSet[] = useMemo(() => {
     if (!session) return []
@@ -141,6 +135,31 @@ export default function TrainPage() {
   }, [session, defaultRestSeconds])
 
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Determine le point de reprise: on regarde jusqu'ou les series sont
+  // deja marquees "faites" aujourd'hui (deduit directement des set_logs
+  // existants, pas besoin de stocker une position separement). Si tout
+  // est deja fait, on va direct sur l'ecran de fin.
+  useEffect(() => {
+    if (!session || workoutLogLoading || flatSets.length === 0) return
+
+    let resumeIndex = 0
+    for (const fs of flatSets) {
+      if (getLog(fs.blockId, fs.setIdx)?.completed) resumeIndex++
+      else break
+    }
+
+    if (resumeIndex >= flatSets.length) {
+      setCurrentIndex(flatSets.length - 1)
+      setPhase('done')
+      return
+    }
+
+    setCurrentIndex(resumeIndex)
+    setPhase(resumeIndex > 0 ? 'set' : needsRestConfig ? 'config' : 'set')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, workoutLogLoading, flatSets])
+
   const [actualReps, setActualReps] = useState<string>('')
   const [actualWeight, setActualWeight] = useState<string>('')
   const [restElapsed, setRestElapsed] = useState(0)
@@ -183,7 +202,7 @@ export default function TrainPage() {
     return () => clearInterval(interval)
   }, [phase])
 
-  if (loading || phase === 'loading') {
+  if (loading || workoutLogLoading || phase === 'loading') {
     return (
       <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center text-[var(--text-muted)]">
         Chargement...
