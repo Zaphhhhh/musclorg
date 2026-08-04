@@ -95,7 +95,7 @@ function SessionClock({ seconds }: { seconds: number }) {
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const { session, programId, loading, error } = useSessionDetail(sessionId)
-  const { updateSetLog, saveFeedback } = useWorkoutLog(sessionId)
+  const { updateSetLog, saveFeedback, getLog } = useWorkoutLog(sessionId)
 
   const [deviations, setDeviations] = useState<Deviation[]>([])
   const [intensityRating, setIntensityRating] = useState<number | null>(null)
@@ -146,6 +146,7 @@ export default function TrainPage() {
   const [restElapsed, setRestElapsed] = useState(0)
   const [restPaused, setRestPaused] = useState(false)
   const [sessionElapsed, setSessionElapsed] = useState(0)
+  const [commentDraft, setCommentDraft] = useState('')
 
   const current = flatSets[currentIndex]
   const next = flatSets[currentIndex + 1]
@@ -156,6 +157,14 @@ export default function TrainPage() {
     setActualReps(current.reps === 'AMRAP' ? '' : String(current.reps))
     setActualWeight(current.weight != null ? String(current.weight) : '')
   }, [current])
+
+  // Pre-remplit le commentaire (s'il y en a deja un) a l'entree dans le
+  // repos qui suit la validation d'une serie.
+  useEffect(() => {
+    if (phase !== 'rest' || !current) return
+    setCommentDraft(getLog(current.blockId, current.setIdx)?.comment ?? '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, current])
 
   // Chrono de repos: tick chaque seconde pendant la phase 'rest', sauf
   // si en pause (l'effet ne se relance simplement pas dans ce cas).
@@ -427,6 +436,24 @@ export default function TrainPage() {
         <Button variant="secondary" onClick={() => setRestPaused((p) => !p)} className="text-sm">
           {restPaused ? '▸ Reprendre' : '‖ Pause'}
         </Button>
+
+        <div className="w-full max-w-xs flex flex-col gap-1.5">
+          <label className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
+            Note sur cette serie (optionnel)
+          </label>
+          <textarea
+            value={commentDraft}
+            onChange={(e) => {
+              setCommentDraft(e.target.value)
+              updateSetLog(current.blockId, current.setIdx, {
+                comment: e.target.value || null,
+              })
+            }}
+            placeholder="Ex: forme cassee, douleur epaule, trop facile..."
+            rows={2}
+            className="bg-[var(--surface-2)] border-2 border-[var(--border)] px-2 py-1.5 text-sm focus:border-[var(--pr)] outline-none resize-none"
+          />
+        </div>
 
         {next && (
           <p className="text-[var(--text-muted)] text-sm text-center">

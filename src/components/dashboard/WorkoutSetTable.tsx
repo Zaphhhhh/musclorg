@@ -31,10 +31,11 @@ export default function WorkoutSetTable({ sets, getLog, onUpdateLog }: WorkoutSe
         return (
           <div
             key={i}
-            className={`grid grid-cols-[1fr_auto_auto_1px_auto_auto_auto] gap-2 items-center rounded-lg px-3 py-2 ${
+            className={`flex flex-col gap-1 rounded-lg px-3 py-2 ${
               log?.completed ? 'bg-[var(--success)]/10' : 'bg-[var(--surface-2)]'
             }`}
           >
+            <div className="grid grid-cols-[1fr_auto_auto_1px_auto_auto_auto] gap-2 items-center">
             <span className="text-sm normal-case tracking-normal">
               {set.label}
               {set.restSeconds != null && (
@@ -89,6 +90,10 @@ export default function WorkoutSetTable({ sets, getLog, onUpdateLog }: WorkoutSe
             >
               ✓
             </button>
+            </div>
+            {log?.comment && (
+              <p className="text-xs text-[var(--pr)] italic px-1">"{log.comment}"</p>
+            )}
           </div>
         )
       })}
