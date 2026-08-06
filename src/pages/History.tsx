@@ -11,8 +11,10 @@ import {
 } from 'recharts'
 import { useExercises } from '../hooks/useExercises'
 import { useExerciseHistory } from '../hooks/useExerciseHistory'
+import { useWorkoutHistory } from '../hooks/useWorkoutHistory'
 import Select from '../components/ui/Select'
 import Button from '../components/ui/Button'
+import SessionJournal from '../components/dashboard/SessionJournal'
 
 type Criterion = 'weight' | 'volume'
 
@@ -28,6 +30,12 @@ export default function HistoryPage() {
 
   const selectedId = exerciseId || exercises[0]?.id
   const { entries, loading, error } = useExerciseHistory(selectedId)
+  const {
+    entries: journalEntries,
+    loading: journalLoading,
+    error: journalError,
+    deleteEntry,
+  } = useWorkoutHistory()
 
   const chartData = useMemo(() => {
     // Chaque serie loggee devient son propre point, positionne par ordre
@@ -175,6 +183,23 @@ export default function HistoryPage() {
             )}
           </>
         )}
+
+        <section className="mt-12">
+          <h2 className="text-lg mb-1">Journal des seances</h2>
+          <p className="text-sm text-[var(--text-muted)] mb-4">
+            Ressenti, notes et ecarts par rapport au prevu, seance par seance.
+          </p>
+          {journalError && (
+            <p className="text-sm text-[var(--danger)] bg-[var(--danger)]/10 rounded-md px-3 py-2 mb-4">
+              {journalError}
+            </p>
+          )}
+          {journalLoading ? (
+            <p className="text-[var(--text-muted)]">Chargement...</p>
+          ) : (
+            <SessionJournal entries={journalEntries} onDelete={deleteEntry} />
+          )}
+        </section>
       </main>
     </div>
   )
