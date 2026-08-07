@@ -8,7 +8,6 @@ import { CopyIcon, TrashIcon } from '../ui/icons'
 import { DAYS_OF_WEEK } from '../../types/program'
 import type { WeekWithSessions, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
-import type { SetStrategyType } from '../../types/setStrategy'
 
 interface CopyOption {
   id: string
@@ -21,7 +20,6 @@ interface WeekBlockProps {
   onAddSession: (name: string, dayOfWeek: number | null) => void
   onDeleteWeek: () => void
   onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) => void
-  onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
   onDeleteSession: (sessionId: string) => void
   allWeekOptions: CopyOption[]
@@ -38,7 +36,6 @@ export default function WeekBlock({
   onAddSession,
   onDeleteWeek,
   onUpdateBlock,
-  onStrategyChange,
   onDeleteBlock,
   onDeleteSession,
   allWeekOptions,
@@ -108,7 +105,6 @@ export default function WeekBlock({
             session={session}
             exercisesById={exercisesById}
             onUpdateBlock={onUpdateBlock}
-            onStrategyChange={onStrategyChange}
             onDeleteBlock={onDeleteBlock}
             onDeleteSession={() => onDeleteSession(session.id)}
             allWeekOptions={allWeekOptions}

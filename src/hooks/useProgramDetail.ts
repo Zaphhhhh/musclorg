@@ -6,8 +6,6 @@ import type {
   PeriodizationType,
   SessionBlock,
 } from '../types/program'
-import type { SetStrategyType, SetStrategyConfig } from '../types/setStrategy'
-import { defaultConfigFor } from '../types/setStrategy'
 
 const TREE_SELECT = `
   *,
@@ -182,8 +180,6 @@ export function useProgramDetail(programId: string | undefined) {
         reps: exercise.default_reps ?? 10,
         weight: exercise.default_weight,
         rest_seconds: exercise.default_rest_seconds ?? 90,
-        set_strategy: 'straight',
-        set_strategy_config: defaultConfigFor('straight'),
         is_accessory: false,
       })
 
@@ -238,16 +234,6 @@ export function useProgramDetail(programId: string | undefined) {
       }, 400)
     },
     [fetchProgram]
-  )
-
-  const setBlockStrategy = useCallback(
-    (blockId: string, strategy: SetStrategyType) =>
-      updateBlock(blockId, {
-        set_strategy: strategy,
-        set_strategy_config: defaultConfigFor(strategy) as SetStrategyConfig,
-        set_overrides: null,
-      }),
-    [updateBlock]
   )
 
   const deleteBlock = useCallback(
@@ -349,8 +335,6 @@ export function useProgramDetail(programId: string | undefined) {
           set_reps_overrides: block.set_reps_overrides,
           set_intensity: block.set_intensity,
           rest_seconds: block.rest_seconds,
-          set_strategy: block.set_strategy,
-          set_strategy_config: block.set_strategy_config,
           is_accessory: block.is_accessory,
         }))
 
@@ -385,8 +369,6 @@ export function useProgramDetail(programId: string | undefined) {
         set_reps_overrides: sourceBlock.set_reps_overrides,
         set_intensity: sourceBlock.set_intensity,
         rest_seconds: sourceBlock.rest_seconds,
-        set_strategy: sourceBlock.set_strategy,
-        set_strategy_config: sourceBlock.set_strategy_config,
         is_accessory: sourceBlock.is_accessory,
       })
 
@@ -447,8 +429,6 @@ export function useProgramDetail(programId: string | undefined) {
             set_reps_overrides: block.set_reps_overrides,
             set_intensity: block.set_intensity,
             rest_seconds: block.rest_seconds,
-            set_strategy: block.set_strategy,
-            set_strategy_config: block.set_strategy_config,
             is_accessory: block.is_accessory,
           }))
           await supabase.from('session_blocks').insert(blockCopies)
@@ -527,8 +507,6 @@ export function useProgramDetail(programId: string | undefined) {
               set_reps_overrides: block.set_reps_overrides,
               set_intensity: block.set_intensity,
               rest_seconds: block.rest_seconds,
-              set_strategy: block.set_strategy,
-              set_strategy_config: block.set_strategy_config,
               is_accessory: block.is_accessory,
             }))
             await supabase.from('session_blocks').insert(blockCopies)
@@ -555,7 +533,6 @@ export function useProgramDetail(programId: string | undefined) {
     deleteSession,
     addBlockFromExercise,
     updateBlock,
-    setBlockStrategy,
     deleteBlock,
     reorderBlocksInSession,
     copySessionToWeek,

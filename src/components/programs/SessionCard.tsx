@@ -7,7 +7,6 @@ import { CopyIcon, TrashIcon } from '../ui/icons'
 import type { SessionWithBlocks } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
 import type { SessionBlock } from '../../types/program'
-import type { SetStrategyType } from '../../types/setStrategy'
 import { DAYS_OF_WEEK } from '../../types/program'
 
 interface CopyOption {
@@ -19,7 +18,6 @@ interface SessionCardProps {
   session: SessionWithBlocks
   exercisesById: Map<string, Exercise>
   onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) => void
-  onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
   onDeleteSession: () => void
   allWeekOptions: CopyOption[]
@@ -32,7 +30,6 @@ export default function SessionCard({
   session,
   exercisesById,
   onUpdateBlock,
-  onStrategyChange,
   onDeleteBlock,
   onDeleteSession,
   allWeekOptions,
@@ -147,7 +144,6 @@ export default function SessionCard({
                   block={block}
                   exercise={exercisesById.get(block.exercise_id)}
                   onUpdate={(updates) => onUpdateBlock(block.id, updates)}
-                  onStrategyChange={(strategy) => onStrategyChange(block.id, strategy)}
                   onDelete={() => onDeleteBlock(block.id)}
                   allSessionOptions={allSessionOptions}
                   onCopyToSession={onCopyBlockToSession}

@@ -1,4 +1,3 @@
-import type { SetStrategyType, SetStrategyConfig } from './setStrategy'
 import type { Exercise } from './exercise'
 
 export const PERIODIZATION_TYPES = ['lineaire', 'oscillatoire', 'flat', 'custom'] as const
@@ -89,8 +88,6 @@ export interface SessionBlock {
   // RIR ou RPE cible par serie individuelle, meme indexation.
   set_intensity: (SetIntensity | null)[] | null
   rest_seconds: number | null
-  set_strategy: SetStrategyType
-  set_strategy_config: SetStrategyConfig | null
   superset_group_id: string | null
   is_accessory: boolean
   created_at: string

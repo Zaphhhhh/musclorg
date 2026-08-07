@@ -38,7 +38,6 @@ export default function ProgramDetailPage() {
     deleteSession,
     addBlockFromExercise,
     updateBlock,
-    setBlockStrategy,
     deleteBlock,
     reorderBlocksInSession,
     copySessionToWeek,
@@ -255,7 +254,6 @@ export default function ProgramDetailPage() {
                 onAddSession={(weekId, name, day) => addSession(weekId, name, day)}
                 onDeleteSession={(sessionId) => deleteSession(sessionId)}
                 onUpdateBlock={(blockId, updates) => updateBlock(blockId, updates)}
-                onStrategyChange={(blockId, strategy) => setBlockStrategy(blockId, strategy)}
                 onDeleteBlock={(blockId) => deleteBlock(blockId)}
                 allWeekOptions={allWeekOptions}
                 allSessionOptions={allSessionOptions}

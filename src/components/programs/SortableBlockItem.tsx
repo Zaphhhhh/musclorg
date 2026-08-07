@@ -1,14 +1,10 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import Select from '../ui/Select'
-import StrategyConfigEditor from './StrategyConfigEditor'
 import SetPreview from './SetPreview'
 import CopyPicker from './CopyPicker'
 import { CopyIcon, TrashIcon } from '../ui/icons'
 import { computeSets, resolveBaseWeight } from '../../lib/computeSets'
-import { SET_STRATEGIES, SET_STRATEGY_LABELS } from '../../types/setStrategy'
-import type { SetStrategyType } from '../../types/setStrategy'
 import type { SessionBlock } from '../../types/program'
 import type { SetOverride, SetIntensity } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
@@ -22,7 +18,6 @@ interface SortableBlockItemProps {
   block: SessionBlock
   exercise: Exercise | undefined
   onUpdate: (updates: Partial<SessionBlock>) => void
-  onStrategyChange: (strategy: SetStrategyType) => void
   onDelete: () => void
   allSessionOptions: CopyOption[]
   onCopyToSession: (blockId: string, targetSessionId: string) => void
@@ -32,7 +27,6 @@ export default function SortableBlockItem({
   block,
   exercise,
   onUpdate,
-  onStrategyChange,
   onDelete,
   allSessionOptions,
   onCopyToSession,
@@ -192,26 +186,6 @@ export default function SortableBlockItem({
               </div>
             )}
           </div>
-
-          <Select
-            label="Strategie de series"
-            options={SET_STRATEGIES.map((s) => SET_STRATEGY_LABELS[s])}
-            value={SET_STRATEGY_LABELS[block.set_strategy]}
-            onChange={(e) => {
-              const strategy = SET_STRATEGIES.find(
-                (s) => SET_STRATEGY_LABELS[s] === e.target.value
-              )
-              if (strategy) onStrategyChange(strategy)
-            }}
-            className="text-sm py-1.5"
-          />
-
-          {block.set_strategy_config && (
-            <StrategyConfigEditor
-              config={block.set_strategy_config}
-              onChange={(config) => onUpdate({ set_strategy_config: config })}
-            />
-          )}
 
           <div className="border-t border-[var(--border)] pt-2">
             <SetPreview

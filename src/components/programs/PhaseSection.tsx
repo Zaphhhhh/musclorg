@@ -6,7 +6,6 @@ import { CopyIcon, TrashIcon } from '../ui/icons'
 import { PERIODIZATION_LABELS } from '../../types/program'
 import type { PhaseWithWeeks, SessionBlock } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
-import type { SetStrategyType } from '../../types/setStrategy'
 
 interface CopyOption {
   id: string
@@ -23,7 +22,6 @@ interface PhaseSectionProps {
   onAddSession: (weekId: string, name: string, dayOfWeek: number | null) => void
   onDeleteSession: (sessionId: string) => void
   onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) => void
-  onStrategyChange: (blockId: string, strategy: SetStrategyType) => void
   onDeleteBlock: (blockId: string) => void
   allWeekOptions: CopyOption[]
   allSessionOptions: CopyOption[]
@@ -45,7 +43,6 @@ export default function PhaseSection({
   onAddSession,
   onDeleteSession,
   onUpdateBlock,
-  onStrategyChange,
   onDeleteBlock,
   allWeekOptions,
   allSessionOptions,
@@ -129,7 +126,6 @@ export default function PhaseSection({
                 onAddSession={(name, day) => onAddSession(week.id, name, day)}
                 onDeleteWeek={() => onDeleteWeek(week.id)}
                 onUpdateBlock={onUpdateBlock}
-                onStrategyChange={onStrategyChange}
                 onDeleteBlock={onDeleteBlock}
                 onDeleteSession={onDeleteSession}
                 allWeekOptions={allWeekOptions}
