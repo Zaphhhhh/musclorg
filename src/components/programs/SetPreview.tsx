@@ -21,7 +21,7 @@ export default function SetPreview({
   onIntensity,
 }: SetPreviewProps) {
   if (sets.length === 0) {
-    return <p className="text-xs text-[var(--text-muted)]">Configure la strategie pour voir le detail.</p>
+    return <p className="text-xs text-[var(--text-muted)]">Aucune serie configuree.</p>
   }
 
   return (
@@ -135,9 +135,9 @@ export default function SetPreview({
         )
       })}
       <p className="text-xs text-[var(--text-muted)] mt-1">
-        "Auto" suit la strategie/le %PR du bloc. "Fixe" ou "% PR" fige le poids de cette serie
-        precise. Le champ reps est toujours modifiable directement. RIR = reps en reserve, RPE =
-        effort percu (1-10).
+        "Auto" suit le %PR du bloc. "Fixe" ou "% PR" fige le poids de cette serie precise. Le
+        champ reps est toujours modifiable directement. RIR = reps en reserve, RPE = effort
+        percu (1-10).
       </p>
     </div>
   )

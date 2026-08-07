@@ -2,7 +2,6 @@ import { Link, useParams } from 'react-router-dom'
 import { useSessionDetail } from '../hooks/useSessionDetail'
 import { useWorkoutLog } from '../hooks/useWorkoutLog'
 import { computeSets, resolveBaseWeight } from '../lib/computeSets'
-import { SET_STRATEGY_LABELS } from '../types/setStrategy'
 import { DAYS_OF_WEEK } from '../types/program'
 import WorkoutSetTable from '../components/dashboard/WorkoutSetTable'
 import Button from '../components/ui/Button'
@@ -67,9 +66,6 @@ export default function WorkoutPage() {
                   <h2 className="text-lg normal-case tracking-normal">
                     {block.exercise?.name ?? 'Exercice supprime'}
                   </h2>
-                  <span className="text-xs text-[var(--accent)] bg-[var(--accent)]/10 rounded-full px-2 py-0.5">
-                    {SET_STRATEGY_LABELS[block.set_strategy]}
-                  </span>
                 </div>
 
                 {block.rest_seconds && (
