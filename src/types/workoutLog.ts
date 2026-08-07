@@ -3,6 +3,10 @@ export interface WorkoutLog {
   user_id: string
   session_id: string
   performed_on: string // date ISO (YYYY-MM-DD)
+  duration_seconds: number | null
+  intensity_rating: number | null
+  duration_rating: number | null
+  relevance_rating: number | null
   created_at: string
   updated_at: string
 }

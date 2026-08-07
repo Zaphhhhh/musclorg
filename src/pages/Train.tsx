@@ -95,7 +95,7 @@ function SessionClock({ seconds }: { seconds: number }) {
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const { session, programId, loading, error } = useSessionDetail(sessionId)
-  const { updateSetLog, saveFeedback, getLog, loading: workoutLogLoading } = useWorkoutLog(sessionId)
+  const { updateSetLog, saveFeedback, saveDuration, getLog, loading: workoutLogLoading } = useWorkoutLog(sessionId)
 
   const [deviations, setDeviations] = useState<Deviation[]>([])
   const [intensityRating, setIntensityRating] = useState<number | null>(null)
@@ -260,6 +260,7 @@ export default function TrainPage() {
     }
 
     if (currentIndex >= flatSets.length - 1) {
+      saveDuration(sessionElapsed)
       setPhase('done')
       return
     }

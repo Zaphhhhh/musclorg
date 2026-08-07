@@ -166,7 +166,22 @@ export function useWorkoutLog(sessionId: string | undefined, performedOn: string
     [ensureWorkoutLog]
   )
 
-  return { loading, getLog, updateSetLog, ensureWorkoutLog, saveFeedback }
+  const saveDuration = useCallback(
+    async (durationSeconds: number) => {
+      const logId = await ensureWorkoutLog()
+      if (!logId) return { error: 'Impossible de creer le journal de seance' }
+
+      const { error } = await supabase
+        .from('workout_logs')
+        .update({ duration_seconds: durationSeconds })
+        .eq('id', logId)
+      if (error) return { error: error.message }
+      return { error: null }
+    },
+    [ensureWorkoutLog]
+  )
+
+  return { loading, getLog, updateSetLog, ensureWorkoutLog, saveFeedback, saveDuration }
 }
 
 export interface SessionFeedback {

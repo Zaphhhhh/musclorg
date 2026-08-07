@@ -6,6 +6,12 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
+function formatDuration(seconds: number) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return m > 0 ? `${m}min${s > 0 ? String(s).padStart(2, '0') : ''}` : `${s}s`
+}
+
 interface SessionJournalProps {
   entries: JournalEntry[]
   onDelete: (id: string) => void
@@ -47,6 +53,11 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
                 {entry.session_name}
               </h3>
               <div className="flex items-center gap-3">
+                {entry.duration_seconds != null && (
+                  <span className="text-xs text-[var(--text-muted)] font-mono-num">
+                    {formatDuration(entry.duration_seconds)}
+                  </span>
+                )}
                 <span className="text-xs text-[var(--text-muted)] font-mono-num capitalize">
                   {formatDate(entry.performed_on)}
                 </span>

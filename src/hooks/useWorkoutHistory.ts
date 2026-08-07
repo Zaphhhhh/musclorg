@@ -16,6 +16,7 @@ export interface JournalEntry {
   id: string
   performed_on: string
   session_name: string
+  duration_seconds: number | null
   intensity_rating: number | null
   duration_rating: number | null
   relevance_rating: number | null
@@ -35,7 +36,7 @@ export function useWorkoutHistory() {
       .from('workout_logs')
       .select(
         `
-          id, performed_on, intensity_rating, duration_rating, relevance_rating,
+          id, performed_on, duration_seconds, intensity_rating, duration_rating, relevance_rating,
           session:sessions(name),
           set_logs(
             set_index, actual_reps, actual_weight, completed, comment,
@@ -70,6 +71,7 @@ export function useWorkoutHistory() {
         id: log.id as string,
         performed_on: log.performed_on as string,
         session_name: session?.name ?? 'Seance',
+        duration_seconds: log.duration_seconds as number | null,
         intensity_rating: log.intensity_rating as number | null,
         duration_rating: log.duration_rating as number | null,
         relevance_rating: log.relevance_rating as number | null,
