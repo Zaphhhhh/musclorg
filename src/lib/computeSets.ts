@@ -1,4 +1,4 @@
-import type { SessionBlock, SetIntensity } from '../types/program'
+import type { SessionBlock, SetIntensity, SetOverride } from '../types/program'
 
 export interface ComputedSet {
   label: string
@@ -20,6 +20,27 @@ export function resolveBaseWeight(
   if (block.weight_mode === 'fixed') return block.weight ?? null
   if (exercisePr == null || block.weight_pct == null) return null
   return Math.round(exercisePr * (block.weight_pct / 100) * 10) / 10
+}
+
+// Le plus lourd poids resolu parmi une liste de surcharges par serie
+// (fixe ou % de PR resolu via le PR de l'exo). Sert a mettre a jour le
+// poids general du bloc quand il n'est pas encore renseigne.
+export function maxOverrideWeight(
+  overrides: (SetOverride | null)[],
+  exercisePr: number | null
+): number | null {
+  let max: number | null = null
+  for (const o of overrides) {
+    if (!o) continue
+    const w =
+      o.mode === 'fixed'
+        ? o.value
+        : exercisePr != null
+          ? Math.round(exercisePr * (o.value / 100) * 10) / 10
+          : null
+    if (w != null && (max == null || w > max)) max = w
+  }
+  return max
 }
 
 export function computeSets(

@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import SetPreview from './SetPreview'
 import CopyPicker from './CopyPicker'
 import { CopyIcon, TrashIcon } from '../ui/icons'
-import { computeSets, resolveBaseWeight } from '../../lib/computeSets'
+import { computeSets, resolveBaseWeight, maxOverrideWeight } from '../../lib/computeSets'
 import type { SessionBlock } from '../../types/program'
 import type { SetOverride, SetIntensity } from '../../types/program'
 import type { Exercise } from '../../types/exercise'
@@ -196,7 +196,16 @@ export default function SortableBlockItem({
                 const next = [...current]
                 while (next.length <= index) next.push(null)
                 next[index] = override
-                onUpdate({ set_overrides: next })
+
+                const updates: Partial<SessionBlock> = { set_overrides: next }
+                // Si aucun poids general n'est encore renseigne pour ce bloc,
+                // on le fixe automatiquement sur le plus lourd des poids par
+                // serie deja precises, pour ne pas laisser un "0 kg" affiche.
+                if (block.weight_mode === 'fixed' && !block.weight) {
+                  const heaviest = maxOverrideWeight(next, exercisePr)
+                  if (heaviest != null) updates.weight = heaviest
+                }
+                onUpdate(updates)
               }}
               repsOverrides={block.set_reps_overrides ?? []}
               onRepsOverride={(index, reps) => {
