@@ -101,7 +101,11 @@ export default function SessionCard({
               <CopyIcon className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={onDeleteSession}
+              onClick={() => {
+                if (confirm(`Supprimer la seance "${session.name}" et tous ses blocs ?`)) {
+                  onDeleteSession()
+                }
+              }}
               className="text-[var(--text-muted)] hover:text-[var(--danger)]"
               aria-label="Supprimer cette seance"
               title="Supprimer cette seance"

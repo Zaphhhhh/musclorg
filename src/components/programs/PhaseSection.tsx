@@ -89,7 +89,15 @@ export default function PhaseSection({
             <CopyIcon />
           </button>
           <button
-            onClick={onDeletePhase}
+            onClick={() => {
+              if (
+                confirm(
+                  `Supprimer le mesocycle "${phase.name}" et tout son contenu (semaines, seances, blocs) ?`
+                )
+              ) {
+                onDeletePhase()
+              }
+            }}
             className="text-[var(--text-muted)] hover:text-[var(--danger)]"
             aria-label="Supprimer ce mesocycle"
             title="Supprimer ce mesocycle"

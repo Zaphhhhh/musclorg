@@ -75,7 +75,15 @@ export default function WeekBlock({
           <CopyIcon className="w-3.5 h-3.5" />
         </button>
         <button
-          onClick={onDeleteWeek}
+          onClick={() => {
+            if (
+              confirm(
+                `Supprimer la semaine ${week.week_number} et toutes ses seances ?`
+              )
+            ) {
+              onDeleteWeek()
+            }
+          }}
           className="text-[var(--text-muted)] hover:text-[var(--danger)]"
           aria-label="Supprimer la semaine"
           title="Supprimer la semaine"
