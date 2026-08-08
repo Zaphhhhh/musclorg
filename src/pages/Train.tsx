@@ -231,10 +231,12 @@ export default function TrainPage() {
 
   const [actualReps, setActualReps] = useState<string>('')
   const [actualWeight, setActualWeight] = useState<string>('')
-  const [restElapsed, setRestElapsed] = useState(0)
+  const [restStartedAt, setRestStartedAt] = useState<number | null>(null)
+  const [restAccumulated, setRestAccumulated] = useState(0)
   const [restPaused, setRestPaused] = useState(false)
-  const [sessionElapsed, setSessionElapsed] = useState(0)
+  const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
+  const [, forceTick] = useState(0)
 
   const current = flatSets[currentIndex]
   const next = flatSets[currentIndex + 1]
@@ -254,22 +256,53 @@ export default function TrainPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, current])
 
-  // Chrono de repos: tick chaque seconde pendant la phase 'rest', sauf
-  // si en pause (l'effet ne se relance simplement pas dans ce cas).
-  useEffect(() => {
-    if (phase !== 'rest' || restPaused) return
-    const interval = setInterval(() => setRestElapsed((e) => e + 1), 1000)
-    return () => clearInterval(interval)
-  }, [phase, restPaused])
+  // Chronos ancres sur de vraies horodatages (Date.now()), pas sur un
+  // compteur de ticks: setInterval se met en pause/derive quand le
+  // telephone verrouille l'ecran, mais l'ecart avec l'heure reelle,
+  // lui, reste toujours exact des qu'on recalcule.
+  const restElapsed =
+    restPaused || !restStartedAt
+      ? restAccumulated
+      : restAccumulated + Math.floor((Date.now() - restStartedAt) / 1000)
 
-  // Chrono global de la seance: tourne en continu pendant les series et
-  // les repos (independant de la pause du chrono de repos), s'arrete a
-  // la fin. Ne demarre pas pendant l'ecran de config.
+  const sessionElapsed = sessionStartedAt ? Math.floor((Date.now() - sessionStartedAt) / 1000) : 0
+
+  // Demarre le chrono de seance une seule fois, a la premiere entree
+  // dans le vif du sujet (pas pendant l'ecran de config).
+  useEffect(() => {
+    if ((phase === 'set' || phase === 'rest') && sessionStartedAt == null) {
+      setSessionStartedAt(Date.now())
+    }
+  }, [phase, sessionStartedAt])
+
+  // Force un re-render chaque seconde pour rafraichir l'affichage des
+  // chronos ci-dessus (le calcul reste base sur Date.now(), ce tick ne
+  // sert qu'a redessiner l'ecran).
   useEffect(() => {
     if (phase !== 'set' && phase !== 'rest') return
-    const interval = setInterval(() => setSessionElapsed((e) => e + 1), 1000)
+    const interval = setInterval(() => forceTick((t) => t + 1), 1000)
     return () => clearInterval(interval)
   }, [phase])
+
+  // Recalcule immediatement au retour au premier plan (ecran reveille,
+  // onglet repasse au premier plan) au lieu d'attendre le prochain tick.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') forceTick((t) => t + 1)
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [])
+
+  const togglePause = () => {
+    if (restPaused) {
+      setRestStartedAt(Date.now())
+      setRestPaused(false)
+    } else {
+      setRestAccumulated(restElapsed)
+      setRestPaused(true)
+    }
+  }
 
   if (loading || workoutLogLoading || phase === 'loading') {
     return (
@@ -334,7 +367,8 @@ export default function TrainPage() {
       return
     }
 
-    setRestElapsed(0)
+    setRestAccumulated(0)
+    setRestStartedAt(Date.now())
     setRestPaused(false)
     setPhase('rest')
   }
@@ -342,7 +376,8 @@ export default function TrainPage() {
   const goToNextSet = () => {
     setCurrentIndex((i) => i + 1)
     setPhase('set')
-    setRestElapsed(0)
+    setRestAccumulated(0)
+    setRestStartedAt(null)
     setRestPaused(false)
   }
 
@@ -350,7 +385,8 @@ export default function TrainPage() {
     if (currentIndex === 0) return
     setCurrentIndex((i) => i - 1)
     setPhase('set')
-    setRestElapsed(0)
+    setRestAccumulated(0)
+    setRestStartedAt(null)
     setRestPaused(false)
   }
 
@@ -523,7 +559,7 @@ export default function TrainPage() {
           <p className="text-[var(--danger)] text-sm">Temps de repos depasse</p>
         )}
 
-        <Button variant="secondary" onClick={() => setRestPaused((p) => !p)} className="text-sm">
+        <Button variant="secondary" onClick={togglePause} className="text-sm">
           {restPaused ? '▸ Reprendre' : '‖ Pause'}
         </Button>
 
