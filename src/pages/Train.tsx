@@ -92,6 +92,75 @@ function SessionClock({ seconds }: { seconds: number }) {
   )
 }
 
+interface TimelineGroup {
+  exerciseName: string
+  blockIndex: number
+  startIndex: number
+  count: number
+}
+
+function TrainingTimeline({
+  flatSets,
+  currentIndex,
+}: {
+  flatSets: FlatSet[]
+  currentIndex: number
+}) {
+  const groups: TimelineGroup[] = []
+  flatSets.forEach((fs, i) => {
+    const last = groups[groups.length - 1]
+    if (last && last.blockIndex === fs.blockIndex) {
+      last.count++
+    } else {
+      groups.push({ exerciseName: fs.exerciseName, blockIndex: fs.blockIndex, startIndex: i, count: 1 })
+    }
+  })
+
+  return (
+    <div className="w-full flex justify-center overflow-x-auto px-4 py-2">
+      <div className="flex gap-3 bg-[var(--surface)] border-2 border-[var(--border)] px-3 py-2 w-max">
+        {groups.map((g) => (
+          <div key={g.startIndex} className="flex flex-col items-center gap-1 shrink-0">
+            <span
+              className={`text-[9px] uppercase tracking-wide truncate max-w-[64px] ${
+                g.blockIndex === flatSets[currentIndex]?.blockIndex
+                  ? 'text-[var(--pr)]'
+                  : 'text-[var(--text-muted)]'
+              }`}
+              title={g.exerciseName}
+            >
+              {g.exerciseName}
+            </span>
+            <div className="flex gap-0.5">
+              {Array.from({ length: g.count }, (_, i) => {
+                const globalIndex = g.startIndex + i
+                const state =
+                  globalIndex < currentIndex
+                    ? 'done'
+                    : globalIndex === currentIndex
+                      ? 'current'
+                      : 'upcoming'
+                return (
+                  <span
+                    key={i}
+                    className={`w-2.5 h-2.5 border-2 ${
+                      state === 'done'
+                        ? 'bg-[var(--success)] border-[var(--success)]'
+                        : state === 'current'
+                          ? 'bg-[var(--pr)] border-[var(--pr)] animate-pulse'
+                          : 'bg-transparent border-[var(--border)]'
+                    }`}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function TrainPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const { session, programId, loading, error } = useSessionDetail(sessionId)
@@ -440,6 +509,7 @@ export default function TrainPage() {
     return (
       <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center gap-8 px-6">
         <SessionClock seconds={sessionElapsed} />
+        <TrainingTimeline flatSets={flatSets} currentIndex={currentIndex} />
         <p className="text-[var(--text-muted)] uppercase tracking-wide text-sm">
           Repos {restPaused && '(pause)'}
         </p>
@@ -513,6 +583,7 @@ export default function TrainPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       <SessionClock seconds={sessionElapsed} />
+      <TrainingTimeline flatSets={flatSets} currentIndex={currentIndex} />
       <header className="border-b border-[var(--border)]">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/">
