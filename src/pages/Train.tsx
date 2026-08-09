@@ -119,12 +119,12 @@ function TrainingTimeline({
   })
 
   return (
-    <div className="w-full flex justify-center overflow-x-auto px-4 py-2">
-      <div className="flex gap-3 bg-[var(--surface)] border-2 border-[var(--border)] px-3 py-2 w-max">
+    <div className="w-full flex justify-center overflow-x-auto px-3 sm:px-4 py-2">
+      <div className="flex gap-2 sm:gap-3 bg-[var(--surface)] border-2 border-[var(--border)] px-2 sm:px-3 py-1.5 sm:py-2 w-max">
         {groups.map((g) => (
           <div key={g.startIndex} className="flex flex-col items-center gap-1 shrink-0">
             <span
-              className={`text-[9px] uppercase tracking-wide truncate max-w-[64px] ${
+              className={`text-[8px] sm:text-[9px] uppercase tracking-wide truncate max-w-[48px] sm:max-w-[64px] ${
                 g.blockIndex === flatSets[currentIndex]?.blockIndex
                   ? 'text-[var(--pr)]'
                   : 'text-[var(--text-muted)]'
@@ -145,7 +145,7 @@ function TrainingTimeline({
                 return (
                   <span
                     key={i}
-                    className={`w-2.5 h-2.5 border-2 ${
+                    className={`w-2 h-2 sm:w-2.5 sm:h-2.5 border sm:border-2 ${
                       state === 'done'
                         ? 'bg-[var(--success)] border-[var(--success)]'
                         : state === 'current'
@@ -662,7 +662,6 @@ export default function TrainPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       <SessionClock seconds={sessionElapsed} />
-      <TrainingTimeline flatSets={flatSets} currentIndex={currentIndex} />
       <header className="border-b border-[var(--border)]">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/">
@@ -673,6 +672,8 @@ export default function TrainPage() {
           <p className="text-sm text-[var(--text-muted)]">{session.name}</p>
         </div>
       </header>
+
+      <TrainingTimeline flatSets={flatSets} currentIndex={currentIndex} />
 
       <main className="flex-1 flex flex-col items-center justify-center gap-6 px-6 py-10">
         <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
