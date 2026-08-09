@@ -77,6 +77,7 @@ export default function ExercisesPage() {
         {formOpen && (
           <div className="mb-8">
             <ExerciseForm
+              key={editing?.id ?? 'new'}
               initial={editing ?? undefined}
               onCancel={closeForm}
               onSubmit={(input) =>
