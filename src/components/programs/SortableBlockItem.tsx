@@ -148,7 +148,7 @@ export default function SortableBlockItem({
             <NumField label="Reps" value={block.reps} onChange={(v) => onUpdate({ reps: v })} />
             <NumField
               label="Repos (s)"
-              value={block.rest_seconds ?? 90}
+              value={block.rest_seconds ?? 180}
               onChange={(v) => onUpdate({ rest_seconds: v })}
               step={5}
             />

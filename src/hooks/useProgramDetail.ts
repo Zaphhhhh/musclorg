@@ -179,7 +179,7 @@ export function useProgramDetail(programId: string | undefined) {
         sets: exercise.default_sets ?? 3,
         reps: exercise.default_reps ?? 10,
         weight: exercise.default_weight,
-        rest_seconds: exercise.default_rest_seconds ?? 90,
+        rest_seconds: exercise.default_rest_seconds ?? 180,
         is_accessory: false,
       })
 

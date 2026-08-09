@@ -176,7 +176,7 @@ export default function TrainPage() {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
 
   const [phase, setPhase] = useState<'loading' | 'config' | 'set' | 'rest' | 'done'>('loading')
-  const [defaultRestSeconds, setDefaultRestSeconds] = useState(90)
+  const [defaultRestSeconds, setDefaultRestSeconds] = useState(180)
 
   // Certains exos peuvent ne pas avoir de temps de repos defini dans le
   // programme -> on demande une valeur par defaut avant de commencer,
