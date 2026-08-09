@@ -136,6 +136,7 @@ export default function ProgramDetailPage() {
       warmup_config: null,
       pr_weight: null,
       pr_reps: null,
+      counts_in_volume: true,
     })
 
     if (error || !data) return null

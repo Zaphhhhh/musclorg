@@ -194,37 +194,39 @@ export default function TrainPage() {
       // Bloc "sans series" (cardio, duree libre...): une seule etape
       // sans reps/poids, plutot que la liste habituelle de series.
       if (block.no_sets_mode) {
-        return [
-          {
-            blockIndex,
-            blockId: block.id,
-            exerciseName,
-            setIdx: 0,
-            restSeconds: block.rest_seconds ?? defaultRestSeconds,
-            label: block.duration_minutes ? `${block.duration_minutes} min` : 'Sans series',
-            reps: 0,
-            weight: null,
-            noSetsMode: true,
-            durationMinutes: block.duration_minutes,
-          },
-        ]
+        const flatSet: FlatSet = {
+          blockIndex,
+          blockId: block.id,
+          exerciseName,
+          setIdx: 0,
+          restSeconds: block.rest_seconds ?? defaultRestSeconds,
+          label: block.duration_minutes ? `${block.duration_minutes} min` : 'Sans series',
+          reps: 0,
+          weight: null,
+          noSetsMode: true,
+          durationMinutes: block.duration_minutes,
+        }
+        return [flatSet]
       }
 
       const exercisePr = block.exercise?.pr_weight ?? null
       const baseWeight = resolveBaseWeight(block, exercisePr)
       const computed = computeSets(block, baseWeight, exercisePr)
-      return computed.map((cs, setIdx) => ({
-        blockIndex,
-        blockId: block.id,
-        exerciseName,
-        setIdx,
-        restSeconds: block.rest_seconds ?? defaultRestSeconds,
-        label: cs.label,
-        reps: cs.reps,
-        weight: cs.weight,
-        noSetsMode: false,
-        durationMinutes: null,
-      }))
+      return computed.map((cs, setIdx) => {
+        const flatSet: FlatSet = {
+          blockIndex,
+          blockId: block.id,
+          exerciseName,
+          setIdx,
+          restSeconds: block.rest_seconds ?? defaultRestSeconds,
+          label: cs.label,
+          reps: cs.reps,
+          weight: cs.weight,
+          noSetsMode: false,
+          durationMinutes: null,
+        }
+        return flatSet
+      })
     })
   }, [session, defaultRestSeconds])
 
