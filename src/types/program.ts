@@ -88,6 +88,11 @@ export interface SessionBlock {
   // RIR ou RPE cible par serie individuelle, meme indexation.
   set_intensity: (SetIntensity | null)[] | null
   rest_seconds: number | null
+  // Mode "sans series": pour un exo cardio/duree libre (velo 10min,
+  // etirements...). Quand actif, series/reps/poids ne sont pas
+  // pertinents, seule duration_minutes compte.
+  no_sets_mode: boolean
+  duration_minutes: number | null
   superset_group_id: string | null
   is_accessory: boolean
   created_at: string

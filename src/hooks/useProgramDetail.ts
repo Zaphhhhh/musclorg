@@ -335,6 +335,8 @@ export function useProgramDetail(programId: string | undefined) {
           set_reps_overrides: block.set_reps_overrides,
           set_intensity: block.set_intensity,
           rest_seconds: block.rest_seconds,
+          no_sets_mode: block.no_sets_mode,
+          duration_minutes: block.duration_minutes,
           is_accessory: block.is_accessory,
         }))
 
@@ -369,6 +371,8 @@ export function useProgramDetail(programId: string | undefined) {
         set_reps_overrides: sourceBlock.set_reps_overrides,
         set_intensity: sourceBlock.set_intensity,
         rest_seconds: sourceBlock.rest_seconds,
+        no_sets_mode: sourceBlock.no_sets_mode,
+        duration_minutes: sourceBlock.duration_minutes,
         is_accessory: sourceBlock.is_accessory,
       })
 
@@ -429,6 +433,8 @@ export function useProgramDetail(programId: string | undefined) {
             set_reps_overrides: block.set_reps_overrides,
             set_intensity: block.set_intensity,
             rest_seconds: block.rest_seconds,
+            no_sets_mode: block.no_sets_mode,
+            duration_minutes: block.duration_minutes,
             is_accessory: block.is_accessory,
           }))
           await supabase.from('session_blocks').insert(blockCopies)
@@ -507,6 +513,8 @@ export function useProgramDetail(programId: string | undefined) {
               set_reps_overrides: block.set_reps_overrides,
               set_intensity: block.set_intensity,
               rest_seconds: block.rest_seconds,
+              no_sets_mode: block.no_sets_mode,
+              duration_minutes: block.duration_minutes,
               is_accessory: block.is_accessory,
             }))
             await supabase.from('session_blocks').insert(blockCopies)

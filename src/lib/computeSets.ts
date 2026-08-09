@@ -48,6 +48,8 @@ export function computeSets(
   baseWeight: number | null,
   exercisePr: number | null
 ): ComputedSet[] {
+  if (block.no_sets_mode) return []
+
   const rawSets: ComputedSet[] = Array.from({ length: block.sets }, (_, i) => ({
     label: `Serie ${i + 1}`,
     reps: block.reps,

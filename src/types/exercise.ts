@@ -47,6 +47,9 @@ export interface Exercise {
   // un bloc. Distinct des default_* qui ne sont que des suggestions.
   pr_weight: number | null
   pr_reps: number | null
+  // Si faux, les series de cet exo ne comptent pas dans le volume
+  // hebdo par groupe musculaire du dashboard.
+  counts_in_volume: boolean
   created_at: string
   updated_at: string
 }

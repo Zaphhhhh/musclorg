@@ -11,8 +11,10 @@ export default function MuscleVolumeCard({ sessions, exercisesById }: MuscleVolu
 
   for (const session of sessions) {
     for (const block of session.session_blocks) {
+      if (block.no_sets_mode) continue
+
       const exercise = exercisesById.get(block.exercise_id)
-      if (!exercise) continue
+      if (!exercise || !exercise.counts_in_volume) continue
 
       if (exercise.primary_muscle_group) {
         volume.set(

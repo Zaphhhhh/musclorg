@@ -21,6 +21,7 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
     initial?.secondary_muscle_groups ?? []
   )
   const [warmupEnabled, setWarmupEnabled] = useState(initial?.warmup_enabled ?? false)
+  const [countsInVolume, setCountsInVolume] = useState(initial?.counts_in_volume ?? true)
   const [currentPr, setCurrentPr] = useState(initial?.pr_weight ?? '')
   const [prReps, setPrReps] = useState(initial?.pr_reps ?? '')
   const [showDefaults, setShowDefaults] = useState(
@@ -50,6 +51,7 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
       warmup_config: initial?.warmup_config ?? null,
       pr_weight: currentPr !== '' ? Number(currentPr) : null,
       pr_reps: prReps !== '' ? Number(prReps) : null,
+      counts_in_volume: countsInVolume,
     })
 
     setSubmitting(false)
@@ -126,6 +128,16 @@ export default function ExerciseForm({ initial, onSubmit, onCancel }: ExerciseFo
           className="accent-[var(--accent)]"
         />
         Activer l'echauffement automatique pour cet exo
+      </label>
+
+      <label className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+        <input
+          type="checkbox"
+          checked={countsInVolume}
+          onChange={(e) => setCountsInVolume(e.target.checked)}
+          className="accent-[var(--accent)]"
+        />
+        Compte dans le volume hebdo par groupe musculaire (dashboard)
       </label>
 
       <div className="border-t border-[var(--border)] pt-4">

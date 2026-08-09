@@ -68,17 +68,25 @@ export default function WorkoutPage() {
                   </h2>
                 </div>
 
-                {block.rest_seconds && (
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Repos entre series: {block.rest_seconds}s
+                {block.no_sets_mode ? (
+                  <p className="text-sm text-[var(--text-muted)]">
+                    Sans series{block.duration_minutes ? ` — ${block.duration_minutes} min` : ''}
                   </p>
-                )}
+                ) : (
+                  <>
+                    {block.rest_seconds && (
+                      <p className="text-xs text-[var(--text-muted)]">
+                        Repos entre series: {block.rest_seconds}s
+                      </p>
+                    )}
 
-                <WorkoutSetTable
-                  sets={computedSets}
-                  getLog={(setIndex) => getLog(block.id, setIndex)}
-                  onUpdateLog={(setIndex, patch) => updateSetLog(block.id, setIndex, patch)}
-                />
+                    <WorkoutSetTable
+                      sets={computedSets}
+                      getLog={(setIndex) => getLog(block.id, setIndex)}
+                      onUpdateLog={(setIndex, patch) => updateSetLog(block.id, setIndex, patch)}
+                    />
+                  </>
+                )}
               </div>
             )
           })

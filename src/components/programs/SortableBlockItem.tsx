@@ -52,7 +52,11 @@ export default function SortableBlockItem({
     block.weight_mode === 'pct_pr'
       ? `${block.weight_pct ?? 80}% PR${baseWeight != null ? ` (${baseWeight}kg)` : ''}`
       : `${block.weight ?? 0}kg`
-  const summary = `${block.sets}x${block.reps} @ ${weightSummary}`
+  const summary = block.no_sets_mode
+    ? block.duration_minutes
+      ? `${block.duration_minutes} min`
+      : 'Sans series'
+    : `${block.sets}x${block.reps} @ ${weightSummary}`
 
   return (
     <div
@@ -121,6 +125,24 @@ export default function SortableBlockItem({
         </button>
       ) : (
         <>
+          <label className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+            <input
+              type="checkbox"
+              checked={block.no_sets_mode}
+              onChange={(e) => onUpdate({ no_sets_mode: e.target.checked })}
+              className="accent-[var(--accent)]"
+            />
+            Pas de series (cardio, etirements, duree libre...)
+          </label>
+
+          {block.no_sets_mode ? (
+            <NumField
+              label="Duree (minutes)"
+              value={block.duration_minutes ?? 0}
+              onChange={(v) => onUpdate({ duration_minutes: v })}
+            />
+          ) : (
+            <>
           <div className="grid grid-cols-3 gap-2">
             <NumField label="Series" value={block.sets} onChange={(v) => onUpdate({ sets: v })} />
             <NumField label="Reps" value={block.reps} onChange={(v) => onUpdate({ reps: v })} />
@@ -225,6 +247,8 @@ export default function SortableBlockItem({
               }}
             />
           </div>
+            </>
+          )}
         </>
       )}
     </div>

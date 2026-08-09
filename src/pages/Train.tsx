@@ -14,6 +14,8 @@ interface FlatSet {
   label: string
   reps: number | 'AMRAP'
   weight: number | null
+  noSetsMode: boolean
+  durationMinutes: number | null
 }
 
 interface Deviation {
@@ -187,18 +189,41 @@ export default function TrainPage() {
   const flatSets: FlatSet[] = useMemo(() => {
     if (!session) return []
     return session.session_blocks.flatMap((block, blockIndex) => {
+      const exerciseName = block.exercise?.name ?? 'Exercice'
+
+      // Bloc "sans series" (cardio, duree libre...): une seule etape
+      // sans reps/poids, plutot que la liste habituelle de series.
+      if (block.no_sets_mode) {
+        return [
+          {
+            blockIndex,
+            blockId: block.id,
+            exerciseName,
+            setIdx: 0,
+            restSeconds: block.rest_seconds ?? defaultRestSeconds,
+            label: block.duration_minutes ? `${block.duration_minutes} min` : 'Sans series',
+            reps: 0,
+            weight: null,
+            noSetsMode: true,
+            durationMinutes: block.duration_minutes,
+          },
+        ]
+      }
+
       const exercisePr = block.exercise?.pr_weight ?? null
       const baseWeight = resolveBaseWeight(block, exercisePr)
       const computed = computeSets(block, baseWeight, exercisePr)
       return computed.map((cs, setIdx) => ({
         blockIndex,
         blockId: block.id,
-        exerciseName: block.exercise?.name ?? 'Exercice',
+        exerciseName,
         setIdx,
         restSeconds: block.rest_seconds ?? defaultRestSeconds,
         label: cs.label,
         reps: cs.reps,
         weight: cs.weight,
+        noSetsMode: false,
+        durationMinutes: null,
       }))
     })
   }, [session, defaultRestSeconds])
@@ -333,6 +358,22 @@ export default function TrainPage() {
 
   const validateSet = () => {
     if (!current) return
+
+    if (current.noSetsMode) {
+      updateSetLog(current.blockId, current.setIdx, { completed: true })
+
+      if (currentIndex >= flatSets.length - 1) {
+        saveDuration(sessionElapsed)
+        setPhase('done')
+        return
+      }
+
+      setRestAccumulated(0)
+      setRestStartedAt(Date.now())
+      setRestPaused(false)
+      setPhase('rest')
+      return
+    }
 
     const parsedActualReps = actualReps === '' ? null : Number(actualReps)
     const parsedActualWeight = actualWeight === '' ? null : Number(actualWeight)
@@ -642,6 +683,11 @@ export default function TrainPage() {
         <h1 className="text-2xl text-center">{current.exerciseName}</h1>
         <p className="text-[var(--pr)]">{current.label}</p>
 
+        {current.noSetsMode ? (
+          <p className="text-sm text-[var(--text-muted)] text-center max-w-xs">
+            Pas de series a remplir pour cet exo — fais-le puis valide quand c'est termine.
+          </p>
+        ) : (
         <div className="flex gap-4 items-end">
           <div className="flex flex-col items-center gap-1">
             <label className="text-xs text-[var(--text-muted)] uppercase">Reps</label>
@@ -664,6 +710,7 @@ export default function TrainPage() {
             />
           </div>
         </div>
+        )}
 
         {next && (
           <p className="text-[var(--text-muted)] text-sm text-center">
