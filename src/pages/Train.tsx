@@ -119,8 +119,8 @@ function TrainingTimeline({
   })
 
   return (
-    <div className="w-full flex justify-center overflow-x-auto px-3 sm:px-4 py-2">
-      <div className="flex gap-2 sm:gap-3 bg-[var(--surface)] border-2 border-[var(--border)] px-2 sm:px-3 py-1.5 sm:py-2 w-max">
+    <div className="w-full flex justify-center px-3 sm:px-4 py-2">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 bg-[var(--surface)] border-2 border-[var(--border)] px-2 sm:px-3 py-1.5 sm:py-2 max-w-full">
         {groups.map((g) => (
           <div key={g.startIndex} className="flex flex-col items-center gap-1 shrink-0">
             <span
