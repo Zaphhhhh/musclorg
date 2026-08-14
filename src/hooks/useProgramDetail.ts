@@ -72,6 +72,37 @@ export function useProgramDetail(programId: string | undefined) {
     fetchProgram()
   }, [fetchProgram])
 
+  // --- Recherche dans l'arbre (partagees par les fonctions ci-dessous,
+  // pour eviter de repeter les memes chaines de flatMap partout) ---
+  const findPhase = useCallback(
+    (phaseId: string) => program?.phases.find((p) => p.id === phaseId),
+    [program]
+  )
+
+  const findWeek = useCallback(
+    (weekId: string) => program?.phases.flatMap((p) => p.weeks).find((w) => w.id === weekId),
+    [program]
+  )
+
+  const findSession = useCallback(
+    (sessionId: string) =>
+      program?.phases
+        .flatMap((p) => p.weeks)
+        .flatMap((w) => w.sessions)
+        .find((s) => s.id === sessionId),
+    [program]
+  )
+
+  const findBlock = useCallback(
+    (blockId: string) =>
+      program?.phases
+        .flatMap((p) => p.weeks)
+        .flatMap((w) => w.sessions)
+        .flatMap((s) => s.session_blocks)
+        .find((b) => b.id === blockId),
+    [program]
+  )
+
   // --- Phases ---
   const addPhase = useCallback(
     async (name: string, periodizationType: PeriodizationType) => {
@@ -105,7 +136,7 @@ export function useProgramDetail(programId: string | undefined) {
   // --- Weeks ---
   const addWeek = useCallback(
     async (phaseId: string, isDeload: boolean) => {
-      const phase = program?.phases.find((p) => p.id === phaseId)
+      const phase = findPhase(phaseId)
       const weekNumber = (phase?.weeks.length ?? 0) + 1
 
       const { error } = await supabase.from('weeks').insert({
@@ -118,7 +149,7 @@ export function useProgramDetail(programId: string | undefined) {
       await fetchProgram()
       return { error: null }
     },
-    [program, fetchProgram]
+    [findPhase, fetchProgram]
   )
 
   const deleteWeek = useCallback(
@@ -134,9 +165,7 @@ export function useProgramDetail(programId: string | undefined) {
   // --- Sessions ---
   const addSession = useCallback(
     async (weekId: string, name: string, dayOfWeek: number | null) => {
-      const week = program?.phases
-        .flatMap((p) => p.weeks)
-        .find((w) => w.id === weekId)
+      const week = findWeek(weekId)
       const orderIndex = week?.sessions.length ?? 0
 
       const { error } = await supabase.from('sessions').insert({
@@ -150,7 +179,7 @@ export function useProgramDetail(programId: string | undefined) {
       await fetchProgram()
       return { error: null }
     },
-    [program, fetchProgram]
+    [findWeek, fetchProgram]
   )
 
   const deleteSession = useCallback(
@@ -166,10 +195,7 @@ export function useProgramDetail(programId: string | undefined) {
   // --- Session blocks ---
   const addBlockFromExercise = useCallback(
     async (sessionId: string, exercise: Exercise) => {
-      const session = program?.phases
-        .flatMap((p) => p.weeks)
-        .flatMap((w) => w.sessions)
-        .find((s) => s.id === sessionId)
+      const session = findSession(sessionId)
       const orderIndex = session?.session_blocks.length ?? 0
 
       const { error } = await supabase.from('session_blocks').insert({
@@ -187,7 +213,7 @@ export function useProgramDetail(programId: string | undefined) {
       await fetchProgram()
       return { error: null }
     },
-    [program, fetchProgram]
+    [findSession, fetchProgram]
   )
 
   const updateBlock = useCallback(
@@ -284,28 +310,31 @@ export function useProgramDetail(programId: string | undefined) {
   )
 
   // --- Copie ---
-  const findSession = useCallback(
-    (sessionId: string) =>
-      program?.phases.flatMap((p) => p.weeks).flatMap((w) => w.sessions).find((s) => s.id === sessionId),
-    [program]
-  )
-
-  const findBlock = useCallback(
-    (blockId: string) =>
-      program?.phases
-        .flatMap((p) => p.weeks)
-        .flatMap((w) => w.sessions)
-        .flatMap((s) => s.session_blocks)
-        .find((b) => b.id === blockId),
-    [program]
-  )
+  // Le tableau de champs copies pour un bloc, partage entre les 4
+  // fonctions de copie ci-dessous pour eviter de le repeter 4 fois.
+  const blockCopyFields = (block: SessionBlock) => ({
+    exercise_id: block.exercise_id,
+    order_index: block.order_index,
+    sets: block.sets,
+    reps: block.reps,
+    weight: block.weight,
+    weight_mode: block.weight_mode,
+    weight_pct: block.weight_pct,
+    set_overrides: block.set_overrides,
+    set_reps_overrides: block.set_reps_overrides,
+    set_intensity: block.set_intensity,
+    rest_seconds: block.rest_seconds,
+    no_sets_mode: block.no_sets_mode,
+    duration_minutes: block.duration_minutes,
+    is_accessory: block.is_accessory,
+  })
 
   const copySessionToWeek = useCallback(
     async (sessionId: string, targetWeekId: string) => {
       const sourceSession = findSession(sessionId)
       if (!sourceSession) return { error: 'Seance source introuvable' }
 
-      const targetWeek = program?.phases.flatMap((p) => p.weeks).find((w) => w.id === targetWeekId)
+      const targetWeek = findWeek(targetWeekId)
       const orderIndex = targetWeek?.sessions.length ?? 0
 
       const { data: newSession, error: sessionError } = await supabase
@@ -324,20 +353,7 @@ export function useProgramDetail(programId: string | undefined) {
       if (sourceSession.session_blocks.length > 0) {
         const blockCopies = sourceSession.session_blocks.map((block) => ({
           session_id: newSession.id,
-          exercise_id: block.exercise_id,
-          order_index: block.order_index,
-          sets: block.sets,
-          reps: block.reps,
-          weight: block.weight,
-          weight_mode: block.weight_mode,
-          weight_pct: block.weight_pct,
-          set_overrides: block.set_overrides,
-          set_reps_overrides: block.set_reps_overrides,
-          set_intensity: block.set_intensity,
-          rest_seconds: block.rest_seconds,
-          no_sets_mode: block.no_sets_mode,
-          duration_minutes: block.duration_minutes,
-          is_accessory: block.is_accessory,
+          ...blockCopyFields(block),
         }))
 
         const { error: blocksError } = await supabase.from('session_blocks').insert(blockCopies)
@@ -347,7 +363,7 @@ export function useProgramDetail(programId: string | undefined) {
       await fetchProgram()
       return { error: null }
     },
-    [program, findSession, fetchProgram]
+    [findSession, findWeek, fetchProgram]
   )
 
   const copyBlockToSession = useCallback(
@@ -360,20 +376,8 @@ export function useProgramDetail(programId: string | undefined) {
 
       const { error } = await supabase.from('session_blocks').insert({
         session_id: targetSessionId,
-        exercise_id: sourceBlock.exercise_id,
         order_index: orderIndex,
-        sets: sourceBlock.sets,
-        reps: sourceBlock.reps,
-        weight: sourceBlock.weight,
-        weight_mode: sourceBlock.weight_mode,
-        weight_pct: sourceBlock.weight_pct,
-        set_overrides: sourceBlock.set_overrides,
-        set_reps_overrides: sourceBlock.set_reps_overrides,
-        set_intensity: sourceBlock.set_intensity,
-        rest_seconds: sourceBlock.rest_seconds,
-        no_sets_mode: sourceBlock.no_sets_mode,
-        duration_minutes: sourceBlock.duration_minutes,
-        is_accessory: sourceBlock.is_accessory,
+        ...blockCopyFields(sourceBlock),
       })
 
       if (error) return { error: error.message }
@@ -388,10 +392,10 @@ export function useProgramDetail(programId: string | undefined) {
   // simple duplication "semaine suivante identique").
   const copyWeekToPhase = useCallback(
     async (weekId: string, targetPhaseId: string) => {
-      const sourceWeek = program?.phases.flatMap((p) => p.weeks).find((w) => w.id === weekId)
+      const sourceWeek = findWeek(weekId)
       if (!sourceWeek) return { error: 'Semaine source introuvable' }
 
-      const targetPhase = program?.phases.find((p) => p.id === targetPhaseId)
+      const targetPhase = findPhase(targetPhaseId)
       const weekNumber = (targetPhase?.weeks.length ?? 0) + 1
 
       const { data: newWeek, error: weekError } = await supabase
@@ -422,20 +426,7 @@ export function useProgramDetail(programId: string | undefined) {
         if (session.session_blocks.length > 0) {
           const blockCopies = session.session_blocks.map((block) => ({
             session_id: newSession.id,
-            exercise_id: block.exercise_id,
-            order_index: block.order_index,
-            sets: block.sets,
-            reps: block.reps,
-            weight: block.weight,
-            weight_mode: block.weight_mode,
-            weight_pct: block.weight_pct,
-            set_overrides: block.set_overrides,
-            set_reps_overrides: block.set_reps_overrides,
-            set_intensity: block.set_intensity,
-            rest_seconds: block.rest_seconds,
-            no_sets_mode: block.no_sets_mode,
-            duration_minutes: block.duration_minutes,
-            is_accessory: block.is_accessory,
+            ...blockCopyFields(block),
           }))
           await supabase.from('session_blocks').insert(blockCopies)
         }
@@ -444,7 +435,7 @@ export function useProgramDetail(programId: string | undefined) {
       await fetchProgram()
       return { error: null }
     },
-    [program, fetchProgram]
+    [findWeek, findPhase, fetchProgram]
   )
 
   // Copie un mesocycle (phase) entier, avec toutes ses semaines/seances/
@@ -452,7 +443,7 @@ export function useProgramDetail(programId: string | undefined) {
   // une simple duplication, ou un autre programme de l'utilisateur).
   const copyPhaseToProgram = useCallback(
     async (phaseId: string, targetProgramId: string) => {
-      const sourcePhase = program?.phases.find((p) => p.id === phaseId)
+      const sourcePhase = findPhase(phaseId)
       if (!sourcePhase) return { error: 'Phase source introuvable' }
 
       const { count } = await supabase
@@ -502,20 +493,7 @@ export function useProgramDetail(programId: string | undefined) {
           if (session.session_blocks.length > 0) {
             const blockCopies = session.session_blocks.map((block) => ({
               session_id: newSession.id,
-              exercise_id: block.exercise_id,
-              order_index: block.order_index,
-              sets: block.sets,
-              reps: block.reps,
-              weight: block.weight,
-              weight_mode: block.weight_mode,
-              weight_pct: block.weight_pct,
-              set_overrides: block.set_overrides,
-              set_reps_overrides: block.set_reps_overrides,
-              set_intensity: block.set_intensity,
-              rest_seconds: block.rest_seconds,
-              no_sets_mode: block.no_sets_mode,
-              duration_minutes: block.duration_minutes,
-              is_accessory: block.is_accessory,
+              ...blockCopyFields(block),
             }))
             await supabase.from('session_blocks').insert(blockCopies)
           }
@@ -525,7 +503,7 @@ export function useProgramDetail(programId: string | undefined) {
       if (targetProgramId === programId) await fetchProgram()
       return { error: null }
     },
-    [program, programId, fetchProgram]
+    [findPhase, programId, fetchProgram]
   )
 
   return {

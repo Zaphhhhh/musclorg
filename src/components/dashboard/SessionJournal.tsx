@@ -35,8 +35,10 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
         const notes = entry.sets.filter((s) => s.comment)
         const variations = entry.sets.filter(
           (s) =>
-            (s.actual_reps != null && s.actual_reps !== s.planned_reps) ||
-            (s.actual_weight != null && s.actual_weight !== s.planned_weight)
+            (s.actual_reps != null && s.planned_reps != null && s.actual_reps !== s.planned_reps) ||
+            (s.actual_weight != null &&
+              s.planned_weight != null &&
+              s.actual_weight !== s.planned_weight)
         )
         const hasRatings =
           entry.intensity_rating != null ||
@@ -114,7 +116,7 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
                   {variations.map((v, i) => (
                     <li key={i} className="text-sm font-mono-num text-[var(--text)]">
                       <span className="font-sans normal-case tracking-normal text-[var(--text-muted)]">
-                        {v.exercise_name}:
+                        {v.exercise_name} (serie {v.set_index + 1}):
                       </span>{' '}
                       {v.actual_reps != null && v.actual_reps !== v.planned_reps && (
                         <span>
@@ -138,7 +140,7 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
                 <ul className="flex flex-col gap-0.5">
                   {notes.map((n, i) => (
                     <li key={i} className="text-sm text-[var(--pr)] italic">
-                      {n.exercise_name}: "{n.comment}"
+                      {n.exercise_name} (serie {n.set_index + 1}): "{n.comment}"
                     </li>
                   ))}
                 </ul>

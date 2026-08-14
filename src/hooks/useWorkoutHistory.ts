@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { computeSets, resolveBaseWeight } from '../lib/computeSets'
+import type { SessionBlock } from '../types/program'
 
 export interface JournalSetLog {
   set_index: number
@@ -40,7 +42,11 @@ export function useWorkoutHistory() {
           session:sessions(name),
           set_logs(
             set_index, actual_reps, actual_weight, completed, comment,
-            session_block:session_blocks(reps, weight, exercise:exercises(name))
+            session_block:session_blocks(
+              order_index, sets, reps, weight, weight_mode, weight_pct,
+              set_overrides, set_reps_overrides, no_sets_mode,
+              exercise:exercises(name, pr_weight)
+            )
           )
         `
       )
@@ -60,11 +66,9 @@ export function useWorkoutHistory() {
         actual_weight: number | null
         completed: boolean
         comment: string | null
-        session_block: {
-          reps: number
-          weight: number | null
-          exercise: { name: string } | null
-        } | null
+        session_block:
+          | (SessionBlock & { exercise: { name: string; pr_weight: number | null } | null })
+          | null
       }[]
 
       return {
@@ -76,17 +80,44 @@ export function useWorkoutHistory() {
         duration_rating: log.duration_rating as number | null,
         relevance_rating: log.relevance_rating as number | null,
         sets: rawSetLogs
-          .map((sl) => ({
-            set_index: sl.set_index,
-            actual_reps: sl.actual_reps,
-            actual_weight: sl.actual_weight,
-            completed: sl.completed,
-            comment: sl.comment,
-            exercise_name: sl.session_block?.exercise?.name ?? 'Exercice',
-            planned_reps: sl.session_block?.reps ?? null,
-            planned_weight: sl.session_block?.weight ?? null,
-          }))
-          .sort((a, b) => a.set_index - b.set_index),
+          .map((sl) => {
+            const block = sl.session_block
+            const exercisePr = block?.exercise?.pr_weight ?? null
+
+            // Poids/reps prevus recalcules exactement comme au moment de
+            // la seance (mode %PR, surcharge par serie...), plutot que
+            // les valeurs generiques du bloc — sinon la comparaison est
+            // fausse des qu'un bloc utilise le %PR ou une surcharge.
+            let plannedReps: number | null = null
+            let plannedWeight: number | null = null
+            if (block) {
+              const baseWeight = resolveBaseWeight(block, exercisePr)
+              const computed = computeSets(block, baseWeight, exercisePr)
+              const cs = computed[sl.set_index]
+              if (cs) {
+                plannedReps = cs.reps === 'AMRAP' ? null : cs.reps
+                plannedWeight = cs.weight
+              }
+            }
+
+            return {
+              set_index: sl.set_index,
+              blockOrder: block?.order_index ?? 0,
+              actual_reps: sl.actual_reps,
+              actual_weight: sl.actual_weight,
+              completed: sl.completed,
+              comment: sl.comment,
+              exercise_name: block?.exercise?.name ?? 'Exercice',
+              planned_reps: plannedReps,
+              planned_weight: plannedWeight,
+            }
+          })
+          // d'abord par position du bloc dans la seance (l'ordre reel des
+          // exos), puis par numero de serie a l'interieur de ce bloc —
+          // sinon des series d'exos differents partageant le meme
+          // set_index se retrouvaient melangees.
+          .sort((a, b) => a.blockOrder - b.blockOrder || a.set_index - b.set_index)
+          .map(({ blockOrder: _blockOrder, ...rest }) => rest),
       }
     })
 

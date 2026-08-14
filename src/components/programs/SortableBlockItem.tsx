@@ -46,7 +46,12 @@ export default function SortableBlockItem({
 
   const exercisePr = exercise?.pr_weight ?? null
   const baseWeight = resolveBaseWeight(block, exercisePr)
-  const computedSets = computeSets(block, baseWeight, exercisePr)
+  // Le detail par serie ne sert qu'a l'aperçu deplie (SetPreview) -
+  // inutile de le recalculer a chaque render quand le bloc est replie
+  // ou en mode "sans series" (cas le plus frequent dans une longue
+  // seance).
+  const computedSets =
+    collapsed || block.no_sets_mode ? [] : computeSets(block, baseWeight, exercisePr)
 
   const weightSummary =
     block.weight_mode === 'pct_pr'
@@ -143,110 +148,118 @@ export default function SortableBlockItem({
             />
           ) : (
             <>
-          <div className="grid grid-cols-3 gap-2">
-            <NumField label="Series" value={block.sets} onChange={(v) => onUpdate({ sets: v })} />
-            <NumField label="Reps" value={block.reps} onChange={(v) => onUpdate({ reps: v })} />
-            <NumField
-              label="Repos (s)"
-              value={block.rest_seconds ?? 180}
-              onChange={(v) => onUpdate({ rest_seconds: v })}
-              step={5}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => onUpdate({ weight_mode: 'fixed' })}
-                className={`px-2 py-1 rounded ${
-                  block.weight_mode === 'fixed'
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'bg-[var(--surface)] text-[var(--text-muted)]'
-                }`}
-              >
-                Poids fixe
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdate({ weight_mode: 'pct_pr' })}
-                className={`px-2 py-1 rounded ${
-                  block.weight_mode === 'pct_pr'
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'bg-[var(--surface)] text-[var(--text-muted)]'
-                }`}
-              >
-                % du PR
-              </button>
-            </div>
-
-            {block.weight_mode === 'fixed' ? (
-              <NumField
-                label="Poids (kg)"
-                value={block.weight ?? 0}
-                onChange={(v) => onUpdate({ weight: v })}
-                step={0.5}
-              />
-            ) : (
-              <div className="flex flex-col gap-1">
+              <div className="grid grid-cols-3 gap-2">
                 <NumField
-                  label="% du PR"
-                  value={block.weight_pct ?? 80}
-                  onChange={(v) => onUpdate({ weight_pct: v })}
+                  label="Series"
+                  value={block.sets}
+                  onChange={(v) => onUpdate({ sets: v })}
+                />
+                <NumField
+                  label="Reps"
+                  value={block.reps}
+                  onChange={(v) => onUpdate({ reps: v })}
+                />
+                <NumField
+                  label="Repos (s)"
+                  value={block.rest_seconds ?? 180}
+                  onChange={(v) => onUpdate({ rest_seconds: v })}
                   step={5}
                 />
-                {exercisePr ? (
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Record: {exercisePr}kg{exercise?.pr_reps ? ` x${exercise.pr_reps}` : ''} →{' '}
-                    {baseWeight} kg calcule
-                  </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => onUpdate({ weight_mode: 'fixed' })}
+                    className={`px-2 py-1 rounded ${
+                      block.weight_mode === 'fixed'
+                        ? 'bg-[var(--accent)] text-white'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)]'
+                    }`}
+                  >
+                    Poids fixe
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onUpdate({ weight_mode: 'pct_pr' })}
+                    className={`px-2 py-1 rounded ${
+                      block.weight_mode === 'pct_pr'
+                        ? 'bg-[var(--accent)] text-white'
+                        : 'bg-[var(--surface)] text-[var(--text-muted)]'
+                    }`}
+                  >
+                    % du PR
+                  </button>
+                </div>
+
+                {block.weight_mode === 'fixed' ? (
+                  <NumField
+                    label="Poids (kg)"
+                    value={block.weight ?? 0}
+                    onChange={(v) => onUpdate({ weight: v })}
+                    step={0.5}
+                  />
                 ) : (
-                  <p className="text-xs text-[var(--pr)]">
-                    Aucun record defini pour cet exo — va le renseigner dans "Mes exercices".
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    <NumField
+                      label="% du PR"
+                      value={block.weight_pct ?? 80}
+                      onChange={(v) => onUpdate({ weight_pct: v })}
+                      step={5}
+                    />
+                    {exercisePr ? (
+                      <p className="text-xs text-[var(--text-muted)]">
+                        Record: {exercisePr}kg{exercise?.pr_reps ? ` x${exercise.pr_reps}` : ''}{' '}
+                        → {baseWeight} kg calcule
+                      </p>
+                    ) : (
+                      <p className="text-xs text-[var(--pr)]">
+                        Aucun record defini pour cet exo — va le renseigner dans "Mes exercices".
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
 
-          <div className="border-t border-[var(--border)] pt-2">
-            <SetPreview
-              sets={computedSets}
-              overrides={block.set_overrides ?? []}
-              onOverride={(index, override: SetOverride | null) => {
-                const current = block.set_overrides ?? []
-                const next = [...current]
-                while (next.length <= index) next.push(null)
-                next[index] = override
+              <div className="border-t border-[var(--border)] pt-2">
+                <SetPreview
+                  sets={computedSets}
+                  overrides={block.set_overrides ?? []}
+                  onOverride={(index, override: SetOverride | null) => {
+                    const current = block.set_overrides ?? []
+                    const next = [...current]
+                    while (next.length <= index) next.push(null)
+                    next[index] = override
 
-                const updates: Partial<SessionBlock> = { set_overrides: next }
-                // Si aucun poids general n'est encore renseigne pour ce bloc,
-                // on le fixe automatiquement sur le plus lourd des poids par
-                // serie deja precises, pour ne pas laisser un "0 kg" affiche.
-                if (block.weight_mode === 'fixed' && !block.weight) {
-                  const heaviest = maxOverrideWeight(next, exercisePr)
-                  if (heaviest != null) updates.weight = heaviest
-                }
-                onUpdate(updates)
-              }}
-              repsOverrides={block.set_reps_overrides ?? []}
-              onRepsOverride={(index, reps) => {
-                const current = block.set_reps_overrides ?? []
-                const next = [...current]
-                while (next.length <= index) next.push(null)
-                next[index] = reps
-                onUpdate({ set_reps_overrides: next })
-              }}
-              intensities={block.set_intensity ?? []}
-              onIntensity={(index, intensity: SetIntensity | null) => {
-                const current = block.set_intensity ?? []
-                const next = [...current]
-                while (next.length <= index) next.push(null)
-                next[index] = intensity
-                onUpdate({ set_intensity: next })
-              }}
-            />
-          </div>
+                    const updates: Partial<SessionBlock> = { set_overrides: next }
+                    // Si aucun poids general n'est encore renseigne pour ce bloc,
+                    // on le fixe automatiquement sur le plus lourd des poids par
+                    // serie deja precises, pour ne pas laisser un "0 kg" affiche.
+                    if (block.weight_mode === 'fixed' && !block.weight) {
+                      const heaviest = maxOverrideWeight(next, exercisePr)
+                      if (heaviest != null) updates.weight = heaviest
+                    }
+                    onUpdate(updates)
+                  }}
+                  repsOverrides={block.set_reps_overrides ?? []}
+                  onRepsOverride={(index, reps) => {
+                    const current = block.set_reps_overrides ?? []
+                    const next = [...current]
+                    while (next.length <= index) next.push(null)
+                    next[index] = reps
+                    onUpdate({ set_reps_overrides: next })
+                  }}
+                  intensities={block.set_intensity ?? []}
+                  onIntensity={(index, intensity: SetIntensity | null) => {
+                    const current = block.set_intensity ?? []
+                    const next = [...current]
+                    while (next.length <= index) next.push(null)
+                    next[index] = intensity
+                    onUpdate({ set_intensity: next })
+                  }}
+                />
+              </div>
             </>
           )}
         </>

@@ -194,39 +194,37 @@ export default function TrainPage() {
       // Bloc "sans series" (cardio, duree libre...): une seule etape
       // sans reps/poids, plutot que la liste habituelle de series.
       if (block.no_sets_mode) {
-        const flatSet: FlatSet = {
-          blockIndex,
-          blockId: block.id,
-          exerciseName,
-          setIdx: 0,
-          restSeconds: block.rest_seconds ?? defaultRestSeconds,
-          label: block.duration_minutes ? `${block.duration_minutes} min` : 'Sans series',
-          reps: 0,
-          weight: null,
-          noSetsMode: true,
-          durationMinutes: block.duration_minutes,
-        }
-        return [flatSet]
+        return [
+          {
+            blockIndex,
+            blockId: block.id,
+            exerciseName,
+            setIdx: 0,
+            restSeconds: block.rest_seconds ?? defaultRestSeconds,
+            label: block.duration_minutes ? `${block.duration_minutes} min` : 'Sans series',
+            reps: 0,
+            weight: null,
+            noSetsMode: true,
+            durationMinutes: block.duration_minutes,
+          },
+        ]
       }
 
       const exercisePr = block.exercise?.pr_weight ?? null
       const baseWeight = resolveBaseWeight(block, exercisePr)
       const computed = computeSets(block, baseWeight, exercisePr)
-      return computed.map((cs, setIdx) => {
-        const flatSet: FlatSet = {
-          blockIndex,
-          blockId: block.id,
-          exerciseName,
-          setIdx,
-          restSeconds: block.rest_seconds ?? defaultRestSeconds,
-          label: cs.label,
-          reps: cs.reps,
-          weight: cs.weight,
-          noSetsMode: false,
-          durationMinutes: null,
-        }
-        return flatSet
-      })
+      return computed.map((cs, setIdx) => ({
+        blockIndex,
+        blockId: block.id,
+        exerciseName,
+        setIdx,
+        restSeconds: block.rest_seconds ?? defaultRestSeconds,
+        label: cs.label,
+        reps: cs.reps,
+        weight: cs.weight,
+        noSetsMode: false,
+        durationMinutes: null,
+      }))
     })
   }, [session, defaultRestSeconds])
 
@@ -363,17 +361,7 @@ export default function TrainPage() {
 
     if (current.noSetsMode) {
       updateSetLog(current.blockId, current.setIdx, { completed: true })
-
-      if (currentIndex >= flatSets.length - 1) {
-        saveDuration(sessionElapsed)
-        setPhase('done')
-        return
-      }
-
-      setRestAccumulated(0)
-      setRestStartedAt(Date.now())
-      setRestPaused(false)
-      setPhase('rest')
+      advanceAfterSet()
       return
     }
 
@@ -404,6 +392,12 @@ export default function TrainPage() {
       ])
     }
 
+    advanceAfterSet()
+  }
+
+  // Apres avoir logue une serie (normale ou "sans series"): passe au
+  // repos, ou termine la seance si c'etait la derniere.
+  function advanceAfterSet() {
     if (currentIndex >= flatSets.length - 1) {
       saveDuration(sessionElapsed)
       setPhase('done')
@@ -416,21 +410,21 @@ export default function TrainPage() {
     setPhase('rest')
   }
 
-  const goToNextSet = () => {
-    setCurrentIndex((i) => i + 1)
+  // Deplace le curseur vers une autre serie (avant/apres), en
+  // reinitialisant le repos en cours au passage.
+  function goToSet(index: number) {
+    setCurrentIndex(index)
     setPhase('set')
     setRestAccumulated(0)
     setRestStartedAt(null)
     setRestPaused(false)
   }
 
+  const goToNextSet = () => goToSet(currentIndex + 1)
+
   const goToPreviousSet = () => {
     if (currentIndex === 0) return
-    setCurrentIndex((i) => i - 1)
-    setPhase('set')
-    setRestAccumulated(0)
-    setRestStartedAt(null)
-    setRestPaused(false)
+    goToSet(currentIndex - 1)
   }
 
   const submitFeedback = async () => {
