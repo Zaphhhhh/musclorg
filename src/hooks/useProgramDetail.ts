@@ -376,8 +376,8 @@ export function useProgramDetail(programId: string | undefined) {
 
       const { error } = await supabase.from('session_blocks').insert({
         session_id: targetSessionId,
-        order_index: orderIndex,
         ...blockCopyFields(sourceBlock),
+        order_index: orderIndex,
       })
 
       if (error) return { error: error.message }

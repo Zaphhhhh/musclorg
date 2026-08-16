@@ -188,7 +188,7 @@ export default function TrainPage() {
 
   const flatSets: FlatSet[] = useMemo(() => {
     if (!session) return []
-    return session.session_blocks.flatMap((block, blockIndex) => {
+    return session.session_blocks.flatMap((block, blockIndex): FlatSet[] => {
       const exerciseName = block.exercise?.name ?? 'Exercice'
 
       // Bloc "sans series" (cardio, duree libre...): une seule etape
