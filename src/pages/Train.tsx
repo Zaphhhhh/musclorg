@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useSessionDetail } from '../hooks/useSessionDetail'
 import { useWorkoutLog } from '../hooks/useWorkoutLog'
 import { computeSets, resolveBaseWeight } from '../lib/computeSets'
+import type { SetIntensity } from '../types/program'
 import Button from '../components/ui/Button'
 
 interface FlatSet {
@@ -16,6 +17,7 @@ interface FlatSet {
   weight: number | null
   noSetsMode: boolean
   durationMinutes: number | null
+  intensity: SetIntensity | null
 }
 
 interface Deviation {
@@ -206,6 +208,7 @@ export default function TrainPage() {
             weight: null,
             noSetsMode: true,
             durationMinutes: block.duration_minutes,
+            intensity: null,
           },
         ]
       }
@@ -224,6 +227,7 @@ export default function TrainPage() {
         weight: cs.weight,
         noSetsMode: false,
         durationMinutes: null,
+        intensity: cs.intensity ?? null,
       }))
     })
   }, [session, defaultRestSeconds])
@@ -622,6 +626,7 @@ export default function TrainPage() {
           <p className="text-[var(--text-muted)] text-sm text-center">
             Ensuite: {next.exerciseName} — {next.label} · {next.reps} reps
             {next.weight != null ? ` · ${next.weight}kg` : ''}
+            {next.intensity ? ` · ${next.intensity.type.toUpperCase()} ${next.intensity.value}` : ''}
           </p>
         )}
 
@@ -678,7 +683,14 @@ export default function TrainPage() {
         </p>
 
         <h1 className="text-2xl text-center">{current.exerciseName}</h1>
-        <p className="text-[var(--pr)]">{current.label}</p>
+        <p className="text-[var(--pr)]">
+          {current.label}
+          {current.intensity && (
+            <span className="font-mono-num ml-2 text-sm">
+              {current.intensity.type.toUpperCase()} {current.intensity.value}
+            </span>
+          )}
+        </p>
 
         {current.noSetsMode ? (
           <p className="text-sm text-[var(--text-muted)] text-center max-w-xs">
@@ -714,6 +726,7 @@ export default function TrainPage() {
             Prochaine: {next.blockIndex === current.blockIndex ? '' : `${next.exerciseName} — `}
             {next.label} · {next.reps} reps
             {next.weight != null ? ` · ${next.weight}kg` : ''}
+            {next.intensity ? ` · ${next.intensity.type.toUpperCase()} ${next.intensity.value}` : ''}
           </p>
         )}
 
