@@ -32,18 +32,21 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
   return (
     <div className="flex flex-col gap-4">
       {entries.map((entry) => {
-        const notes = entry.sets.filter((s) => s.comment)
-        const variations = entry.sets.filter(
-          (s) =>
-            (s.actual_reps != null && s.planned_reps != null && s.actual_reps !== s.planned_reps) ||
-            (s.actual_weight != null &&
-              s.planned_weight != null &&
-              s.actual_weight !== s.planned_weight)
-        )
         const hasRatings =
           entry.intensity_rating != null ||
           entry.duration_rating != null ||
           entry.relevance_rating != null
+
+        // Regroupe les series consecutives du meme exo (deja triees par
+        // ordre du bloc puis numero de serie) pour un affichage clair,
+        // avec TOUTES les series — pas seulement celles qui ont devie du
+        // prevu.
+        const groups: { exerciseName: string; sets: typeof entry.sets }[] = []
+        for (const s of entry.sets) {
+          const last = groups[groups.length - 1]
+          if (last && last.exerciseName === s.exercise_name) last.sets.push(s)
+          else groups.push({ exerciseName: s.exercise_name, sets: [s] })
+        }
 
         return (
           <div
@@ -107,50 +110,57 @@ export default function SessionJournal({ entries, onDelete }: SessionJournalProp
               </div>
             )}
 
-            {variations.length > 0 && (
-              <div className="flex flex-col gap-1">
+            {groups.length > 0 ? (
+              <div className="flex flex-col gap-3">
                 <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">
-                  Ecarts vs prevu
+                  Detail des series
                 </p>
-                <ul className="flex flex-col gap-0.5">
-                  {variations.map((v, i) => (
-                    <li key={i} className="text-sm font-mono-num text-[var(--text)]">
-                      <span className="font-sans normal-case tracking-normal text-[var(--text-muted)]">
-                        {v.exercise_name} (serie {v.set_index + 1}):
-                      </span>{' '}
-                      {v.actual_reps != null && v.actual_reps !== v.planned_reps && (
-                        <span>
-                          {v.planned_reps ?? '?'}→{v.actual_reps} reps{' '}
-                        </span>
-                      )}
-                      {v.actual_weight != null && v.actual_weight !== v.planned_weight && (
-                        <span>
-                          {v.planned_weight ?? '?'}→{v.actual_weight}kg
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                {groups.map((g, gi) => (
+                  <div key={gi} className="flex flex-col gap-1">
+                    <p className="text-sm font-semibold normal-case tracking-normal">
+                      {g.exerciseName}
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {g.sets.map((s, si) => {
+                        const deviated =
+                          (s.actual_reps != null &&
+                            s.planned_reps != null &&
+                            s.actual_reps !== s.planned_reps) ||
+                          (s.actual_weight != null &&
+                            s.planned_weight != null &&
+                            s.actual_weight !== s.planned_weight)
 
-            {notes.length > 0 && (
-              <div className="flex flex-col gap-1">
-                <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide">Notes</p>
-                <ul className="flex flex-col gap-0.5">
-                  {notes.map((n, i) => (
-                    <li key={i} className="text-sm text-[var(--pr)] italic">
-                      {n.exercise_name} (serie {n.set_index + 1}): "{n.comment}"
-                    </li>
-                  ))}
-                </ul>
+                        return (
+                          <li key={si} className="text-sm">
+                            <span
+                              className={`font-mono-num ${
+                                deviated ? 'text-[var(--pr)]' : 'text-[var(--text)]'
+                              }`}
+                            >
+                              Serie {s.set_index + 1}: {s.actual_reps ?? '?'} reps @{' '}
+                              {s.actual_weight ?? '?'}kg
+                            </span>
+                            {deviated && (
+                              <span className="text-xs text-[var(--text-muted)] ml-1">
+                                (prevu: {s.planned_reps ?? '?'} reps @ {s.planned_weight ?? '?'}kg)
+                              </span>
+                            )}
+                            {s.comment && (
+                              <p className="text-xs text-[var(--pr)] italic">"{s.comment}"</p>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
-
-            {!hasRatings && variations.length === 0 && notes.length === 0 && (
-              <p className="text-xs text-[var(--text-muted)]">
-                Rien de particulier a signaler pour cette seance.
-              </p>
+            ) : (
+              !hasRatings && (
+                <p className="text-xs text-[var(--text-muted)]">
+                  Rien de particulier a signaler pour cette seance.
+                </p>
+              )
             )}
           </div>
         )
