@@ -50,6 +50,8 @@ export default function HistoryPage() {
         x: i,
         date: entry.date,
         occurrence,
+        weight: entry.weight,
+        reps: entry.reps ?? 0,
         value: criterion === 'weight' ? entry.weight : entry.weight * (entry.reps ?? 0),
       }
     })
@@ -161,6 +163,13 @@ export default function HistoryPage() {
                       <YAxis stroke="#8d9099" tick={{ fontSize: 12, fill: '#8d9099' }} />
                       <Tooltip
                         labelFormatter={(label) => formatTick(label)}
+                        formatter={(value, _name, item) => {
+                          if (criterion === 'volume') {
+                            const point = item.payload as { reps: number; weight: number }
+                            return [`${point.reps} x ${point.weight}kg = ${value}`, 'Volume']
+                          }
+                          return [`${value}kg`, 'Poids']
+                        }}
                         contentStyle={{
                           backgroundColor: '#1a1c21',
                           border: '1px solid #2b2e35',
