@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  /* Base - palette 16-bit chaude, façon coucher de soleil / arcade */
-  --bg: #2b1508;
-  --surface: #3d2013;
-  --surface-2: #4f2b19;
-  --border: #b5651d;
+  /* Base - noir/gris/blanc, ambiance survival-horror retro */
+  --bg: #121212;
+  --surface: #1c1c1c;
+  --surface-2: #272727;
+  --border: #4d4d4d;
 
   /* Texte */
-  --text: #f6e6c8;
-  --text-muted: #c9a06a;
+  --text: #f2f0ed;
+  --text-muted: #9a9793;
 
-  /* Accent (orange vif, energie arcade) */
-  --accent: #ff6b35;
-  --accent-hover: #ff8c5a;
-  --accent-text: #2b1508;
+  /* Accent (rouge sang) */
+  --accent: #b3121f;
+  --accent-hover: #d81e2c;
+  --accent-text: #ffffff;
 
-  /* Or / record / highlight (piece, etoile) */
-  --pr: #ffc93c;
+  /* Highlight / record (rouge ecarlate plus vif que l'accent) */
+  --pr: #ff2d3a;
 
   /* Etats */
-  --danger: #e63946;
-  --success: #a8d858;
+  --danger: #ff4d4d;
+  --success: #7a8f78;
 
   /* Ombre "pixel" dure, pas de flou, decalee */
-  --pixel-shadow: #1a0d05;
+  --pixel-shadow: #000000;
   --shadow: 4px 4px 0 var(--pixel-shadow);
 
   --font-display: 'Press Start 2P', system-ui, sans-serif;
